@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace DavidLambauer\Seeder\Test\Unit\EntityHandler;
 
 use DavidLambauer\Seeder\EntityHandler\ProductHandler;
+use DavidLambauer\Seeder\Service\ImageDownloader;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\Data\ProductInterfaceFactory;
 use Magento\Catalog\Api\Data\ProductSearchResultsInterface;
@@ -13,6 +14,7 @@ use Magento\CatalogInventory\Api\Data\StockItemInterface;
 use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
+use Magento\Framework\App\Filesystem\DirectoryList;
 use PHPUnit\Framework\TestCase;
 
 final class ProductHandlerTest extends TestCase
@@ -144,12 +146,16 @@ final class ProductHandlerTest extends TestCase
         ?ProductRepositoryInterface $productRepository = null,
         ?SearchCriteriaBuilder $searchCriteriaBuilder = null,
         ?StockRegistryInterface $stockRegistry = null,
+        ?ImageDownloader $imageDownloader = null,
+        ?DirectoryList $directoryList = null,
     ): ProductHandler {
         return new ProductHandler(
             $productFactory ?? $this->createMock(ProductInterfaceFactory::class),
             $productRepository ?? $this->createMock(ProductRepositoryInterface::class),
             $searchCriteriaBuilder ?? $this->createMock(SearchCriteriaBuilder::class),
             $stockRegistry ?? $this->createMock(StockRegistryInterface::class),
+            $imageDownloader ?? $this->createMock(ImageDownloader::class),
+            $directoryList ?? $this->createMock(DirectoryList::class),
         );
     }
 }

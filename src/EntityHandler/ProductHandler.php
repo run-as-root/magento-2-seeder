@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace DavidLambauer\Seeder\EntityHandler;
 
 use DavidLambauer\Seeder\Api\EntityHandlerInterface;
+use DavidLambauer\Seeder\Service\ImageDownloader;
 use Magento\Catalog\Api\Data\ProductInterfaceFactory;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
@@ -12,6 +13,7 @@ use Magento\Catalog\Model\Product\Type;
 use Magento\Catalog\Model\Product\Visibility;
 use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\App\Filesystem\DirectoryList;
 
 class ProductHandler implements EntityHandlerInterface
 {
@@ -20,6 +22,8 @@ class ProductHandler implements EntityHandlerInterface
         private readonly ProductRepositoryInterface $productRepository,
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
         private readonly StockRegistryInterface $stockRegistry,
+        private readonly ImageDownloader $imageDownloader,
+        private readonly DirectoryList $directoryList,
     ) {
     }
 
@@ -57,6 +61,11 @@ class ProductHandler implements EntityHandlerInterface
         }
 
         $this->productRepository->save($product);
+
+        if (isset($data['image_url'])) {
+            $importDir = $this->directoryList->getRoot() . '/pub/media/catalog/product/import';
+            $this->imageDownloader->download($data['image_url'], $importDir);
+        }
 
         $stockItem = $this->stockRegistry->getStockItemBySku($data['sku']);
         $stockItem->setQty($data['qty'] ?? 100);
