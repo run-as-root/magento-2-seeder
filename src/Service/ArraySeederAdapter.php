@@ -19,6 +19,7 @@ class ArraySeederAdapter implements SeederInterface
     public function __construct(
         private readonly array $config,
         private readonly EntityHandlerPool $handlerPool,
+        private readonly ?GenerateRunner $generateRunner = null,
     ) {
     }
 
@@ -34,6 +35,17 @@ class ArraySeederAdapter implements SeederInterface
 
     public function run(): void
     {
+        if (isset($this->config['count']) && $this->generateRunner !== null) {
+            $config = new GenerateRunConfig(
+                counts: [$this->config['type'] => $this->config['count']],
+                locale: $this->config['locale'] ?? 'en_US',
+                seed: $this->config['seed'] ?? null,
+            );
+            $this->generateRunner->run($config);
+
+            return;
+        }
+
         $handler = $this->handlerPool->get($this->config['type']);
 
         foreach ($this->config['data'] as $item) {

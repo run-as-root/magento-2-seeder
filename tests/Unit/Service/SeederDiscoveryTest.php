@@ -6,6 +6,7 @@ namespace DavidLambauer\Seeder\Test\Unit\Service;
 
 use DavidLambauer\Seeder\Api\EntityHandlerInterface;
 use DavidLambauer\Seeder\Service\EntityHandlerPool;
+use DavidLambauer\Seeder\Service\GenerateRunner;
 use DavidLambauer\Seeder\Service\SeederDiscovery;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\ObjectManagerInterface;
@@ -34,6 +35,7 @@ final class SeederDiscoveryTest extends TestCase
             $this->createDirectoryListMock($this->tempDir),
             $this->createMock(ObjectManagerInterface::class),
             new EntityHandlerPool([]),
+            $this->createMock(GenerateRunner::class),
         );
 
         $this->assertSame([], $discovery->discover());
@@ -53,6 +55,7 @@ final class SeederDiscoveryTest extends TestCase
             $this->createDirectoryListMock($this->tempDir),
             $this->createMock(ObjectManagerInterface::class),
             $pool,
+            $this->createMock(GenerateRunner::class),
         );
 
         $seeders = $discovery->discover();
@@ -90,6 +93,7 @@ final class SeederDiscoveryTest extends TestCase
             $this->createDirectoryListMock($this->tempDir),
             $objectManager,
             new EntityHandlerPool([]),
+            $this->createMock(GenerateRunner::class),
         );
 
         $seeders = $discovery->discover();
@@ -129,6 +133,7 @@ final class SeederDiscoveryTest extends TestCase
             $this->createDirectoryListMock($this->tempDir),
             $objectManager,
             new EntityHandlerPool([]),
+            $this->createMock(GenerateRunner::class),
         );
 
         $seeders = $discovery->discover();
@@ -148,6 +153,7 @@ final class SeederDiscoveryTest extends TestCase
             $this->createDirectoryListMock($this->tempDir),
             $this->createMock(ObjectManagerInterface::class),
             new EntityHandlerPool([]),
+            $this->createMock(GenerateRunner::class),
         );
 
         $seeders = $discovery->discover();

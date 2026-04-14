@@ -15,6 +15,19 @@
         </arguments>
     </type>
 
+    <!-- Data Generator Pool -->
+    <type name="DavidLambauer\Seeder\Service\DataGeneratorPool">
+        <arguments>
+            <argument name="generators" xsi:type="array">
+                <item name="customer" xsi:type="object">DavidLambauer\Seeder\DataGenerator\CustomerDataGenerator</item>
+                <item name="product" xsi:type="object">DavidLambauer\Seeder\DataGenerator\ProductDataGenerator</item>
+                <item name="category" xsi:type="object">DavidLambauer\Seeder\DataGenerator\CategoryDataGenerator</item>
+                <item name="order" xsi:type="object">DavidLambauer\Seeder\DataGenerator\OrderDataGenerator</item>
+                <item name="cms" xsi:type="object">DavidLambauer\Seeder\DataGenerator\CmsDataGenerator</item>
+            </argument>
+        </arguments>
+    </type>
+
     <!-- CLI Command Registration -->
     <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>

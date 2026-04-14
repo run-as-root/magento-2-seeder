@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace DavidLambauer\Seeder\Console\Command;
 
+use DavidLambauer\Seeder\Service\GenerateRunConfig;
+use DavidLambauer\Seeder\Service\GenerateRunner;
 use DavidLambauer\Seeder\Service\SeederRunConfig;
 use DavidLambauer\Seeder\Service\SeederRunner;
 use Magento\Framework\App\Area;
@@ -19,6 +21,7 @@ class SeedCommand extends Command
     public function __construct(
         private readonly State $appState,
         private readonly SeederRunner $runner,
+        private readonly GenerateRunner $generateRunner,
     ) {
         parent::__construct();
     }
@@ -52,6 +55,25 @@ class SeedCommand extends Command
             InputOption::VALUE_NONE,
             'Stop execution on first seeder error'
         );
+        $this->addOption(
+            'generate',
+            null,
+            InputOption::VALUE_REQUIRED,
+            'Generate fake data (e.g. order:1000,customer:500)'
+        );
+        $this->addOption(
+            'locale',
+            null,
+            InputOption::VALUE_REQUIRED,
+            'Faker locale (default: en_US)',
+            'en_US'
+        );
+        $this->addOption(
+            'seed',
+            null,
+            InputOption::VALUE_REQUIRED,
+            'Faker seed for deterministic generation'
+        );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -60,6 +82,11 @@ class SeedCommand extends Command
             $this->appState->setAreaCode(Area::AREA_ADMINHTML);
         } catch (LocalizedException) {
             // Area code already set
+        }
+
+        $generateOption = $input->getOption('generate');
+        if ($generateOption !== null && $generateOption !== '') {
+            return $this->executeGenerate($input, $output);
         }
 
         $config = new SeederRunConfig(
@@ -100,6 +127,60 @@ class SeedCommand extends Command
         $output->writeln(sprintf('Done. %d seeder(s) completed.', $successCount));
 
         return $hasError ? Command::FAILURE : Command::SUCCESS;
+    }
+
+    private function executeGenerate(InputInterface $input, OutputInterface $output): int
+    {
+        $counts = $this->parseGenerateCounts($input->getOption('generate'));
+        $config = new GenerateRunConfig(
+            counts: $counts,
+            locale: $input->getOption('locale') ?? 'en_US',
+            seed: $input->getOption('seed') !== null ? (int) $input->getOption('seed') : null,
+            fresh: (bool) $input->getOption('fresh'),
+            stopOnError: (bool) $input->getOption('stop-on-error'),
+        );
+
+        if ($config->fresh) {
+            $output->writeln('<comment>Fresh mode: cleaning existing data...</comment>');
+        }
+
+        $output->writeln(sprintf('<comment>Generating with locale: %s</comment>', $config->locale));
+
+        $results = $this->generateRunner->run($config);
+
+        $hasError = false;
+        foreach ($results as $result) {
+            if ($result['success']) {
+                $output->writeln(sprintf('<info>Generated %d %s(s)... done</info>', $result['count'], $result['type']));
+            } else {
+                $hasError = true;
+                $output->writeln(sprintf(
+                    '<error>Generating %s... failed: %s</error>',
+                    $result['type'],
+                    $result['error'] ?? 'Unknown error'
+                ));
+            }
+        }
+
+        $totalCount = array_sum(array_column($results, 'count'));
+        $output->writeln('');
+        $output->writeln(sprintf('Done. %d entities generated.', $totalCount));
+
+        return $hasError ? Command::FAILURE : Command::SUCCESS;
+    }
+
+    /** @return array<string, int> */
+    private function parseGenerateCounts(string $value): array
+    {
+        $counts = [];
+        foreach (explode(',', $value) as $pair) {
+            $parts = explode(':', trim($pair));
+            if (count($parts) === 2) {
+                $counts[trim($parts[0])] = (int) trim($parts[1]);
+            }
+        }
+
+        return $counts;
     }
 
     /** @return string[] */

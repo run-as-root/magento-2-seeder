@@ -14,6 +14,7 @@ class SeederDiscovery
         private readonly DirectoryList $directoryList,
         private readonly ObjectManagerInterface $objectManager,
         private readonly EntityHandlerPool $handlerPool,
+        private readonly GenerateRunner $generateRunner,
     ) {
     }
 
@@ -48,7 +49,7 @@ class SeederDiscovery
         $result = include_once $filePath;
 
         if (is_array($result)) {
-            return new ArraySeederAdapter($result, $this->handlerPool);
+            return new ArraySeederAdapter($result, $this->handlerPool, $this->generateRunner);
         }
 
         // Find any newly declared class that implements SeederInterface

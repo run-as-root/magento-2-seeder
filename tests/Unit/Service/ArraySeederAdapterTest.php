@@ -7,6 +7,8 @@ namespace DavidLambauer\Seeder\Test\Unit\Service;
 use DavidLambauer\Seeder\Api\EntityHandlerInterface;
 use DavidLambauer\Seeder\Service\ArraySeederAdapter;
 use DavidLambauer\Seeder\Service\EntityHandlerPool;
+use DavidLambauer\Seeder\Service\GenerateRunConfig;
+use DavidLambauer\Seeder\Service\GenerateRunner;
 use PHPUnit\Framework\TestCase;
 
 final class ArraySeederAdapterTest extends TestCase
@@ -18,7 +20,8 @@ final class ArraySeederAdapterTest extends TestCase
 
         $adapter = new ArraySeederAdapter(
             ['type' => 'customer', 'data' => []],
-            $pool
+            $pool,
+            null
         );
 
         $this->assertSame('customer', $adapter->getType());
@@ -31,7 +34,8 @@ final class ArraySeederAdapterTest extends TestCase
 
         $adapter = new ArraySeederAdapter(
             ['type' => 'customer', 'data' => []],
-            $pool
+            $pool,
+            null
         );
 
         $this->assertSame(30, $adapter->getOrder());
@@ -44,7 +48,8 @@ final class ArraySeederAdapterTest extends TestCase
 
         $adapter = new ArraySeederAdapter(
             ['type' => 'customer', 'data' => [], 'order' => 5],
-            $pool
+            $pool,
+            null
         );
 
         $this->assertSame(5, $adapter->getOrder());
@@ -57,7 +62,8 @@ final class ArraySeederAdapterTest extends TestCase
 
         $adapter = new ArraySeederAdapter(
             ['type' => 'custom', 'data' => []],
-            $pool
+            $pool,
+            null
         );
 
         $this->assertSame(100, $adapter->getOrder());
@@ -83,7 +89,8 @@ final class ArraySeederAdapterTest extends TestCase
 
         $adapter = new ArraySeederAdapter(
             ['type' => 'customer', 'data' => $expectedData],
-            $pool
+            $pool,
+            null
         );
 
         $adapter->run();
@@ -98,7 +105,51 @@ final class ArraySeederAdapterTest extends TestCase
 
         $adapter = new ArraySeederAdapter(
             ['type' => 'customer', 'data' => []],
-            $pool
+            $pool,
+            null
+        );
+
+        $adapter->run();
+    }
+
+    public function test_run_delegates_to_generate_runner_when_count_is_set(): void
+    {
+        $generateRunner = $this->createMock(GenerateRunner::class);
+        $generateRunner->expects($this->once())
+            ->method('run')
+            ->with($this->callback(function (GenerateRunConfig $config): bool {
+                return $config->counts === ['order' => 100]
+                    && $config->locale === 'de_DE'
+                    && $config->seed === 42;
+            }))
+            ->willReturn([]);
+
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $handler->expects($this->never())->method('create');
+        $pool = new EntityHandlerPool(['order' => $handler]);
+
+        $adapter = new ArraySeederAdapter(
+            ['type' => 'order', 'count' => 100, 'locale' => 'de_DE', 'seed' => 42],
+            $pool,
+            $generateRunner
+        );
+
+        $adapter->run();
+    }
+
+    public function test_run_falls_back_to_data_when_no_generate_runner(): void
+    {
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $handler->expects($this->once())
+            ->method('create')
+            ->with(['email' => 'test@test.com']);
+
+        $pool = new EntityHandlerPool(['customer' => $handler]);
+
+        $adapter = new ArraySeederAdapter(
+            ['type' => 'customer', 'count' => 10, 'data' => [['email' => 'test@test.com']]],
+            $pool,
+            null
         );
 
         $adapter->run();
