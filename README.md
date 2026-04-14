@@ -134,6 +134,77 @@ Add custom entity handlers via `di.xml`:
 
 Your handler must implement `DavidLambauer\Seeder\Api\EntityHandlerInterface`.
 
+## Data Generation with Faker
+
+Generate realistic fake data at scale using the `--generate` flag. No seeder files needed.
+
+### Basic Usage
+
+```bash
+# Generate 1000 orders
+bin/magento db:seed --generate=order:1000
+
+# Generate multiple entity types
+bin/magento db:seed --generate=order:1000,customer:500
+
+# Use a specific locale
+bin/magento db:seed --generate=customer:100 --locale=de_DE
+
+# Deterministic output (same seed = same data)
+bin/magento db:seed --generate=product:50 --seed=42
+
+# Combine with --fresh to wipe and regenerate
+bin/magento db:seed --generate=order:500 --fresh
+```
+
+### Smart Dependency Resolution
+
+You only need to request the entities you want. Dependencies are auto-generated with sensible ratios.
+
+For example, `--generate=order:1000` will also generate the required customers, products, and categories automatically.
+
+| Requested       | Auto-generates                                                                           |
+|-----------------|------------------------------------------------------------------------------------------|
+| `order:1000`    | `customer:200` (1:5 ratio), `product:50` (1:20 ratio), `category:10` (1:5 of products)  |
+| `product:100`   | `category:20` (1:5 ratio)                                                                |
+| `customer:500`  | Nothing (no dependencies)                                                                |
+| `category:50`   | Nothing (no dependencies)                                                                |
+| `cms:20`        | Nothing (no dependencies)                                                                |
+
+If you explicitly request a dependency type, your count takes precedence over the auto-calculated one.
+
+### Count-Based Seeder Files
+
+Instead of listing individual data entries, use the `count` key to generate Faker data from a seeder file:
+
+```php
+<?php
+// dev/seeders/GenerateOrderSeeder.php
+return [
+    'type' => 'order',
+    'count' => 100,
+    'locale' => 'en_US',
+];
+```
+
+This triggers the Faker generation pipeline (with dependency resolution) instead of the standard array-based data flow.
+
+### Custom Data Generators
+
+Add your own data generators via `di.xml`:
+
+```xml
+<type name="DavidLambauer\Seeder\Service\DataGeneratorPool">
+    <arguments>
+        <argument name="generators" xsi:type="array">
+            <item name="custom_entity" xsi:type="object">Vendor\Module\Seeder\CustomEntityDataGenerator</item>
+        </argument>
+    </arguments>
+</type>
+```
+
+Your generator must implement `DavidLambauer\Seeder\Api\DataGeneratorInterface`.
+
 ## License
 
 MIT
