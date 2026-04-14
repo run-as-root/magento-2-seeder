@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <!-- Entity Handler Pool -->
+    <type name="DavidLambauer\Seeder\Service\EntityHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="customer" xsi:type="object">DavidLambauer\Seeder\EntityHandler\CustomerHandler</item>
+                <item name="product" xsi:type="object">DavidLambauer\Seeder\EntityHandler\ProductHandler</item>
+                <item name="category" xsi:type="object">DavidLambauer\Seeder\EntityHandler\CategoryHandler</item>
+                <item name="order" xsi:type="object">DavidLambauer\Seeder\EntityHandler\OrderHandler</item>
+                <item name="cms" xsi:type="object">DavidLambauer\Seeder\EntityHandler\CmsHandler</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- CLI Command Registration -->
+    <type name="Magento\Framework\Console\CommandListInterface">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="seeder_db_seed" xsi:type="object">DavidLambauer\Seeder\Console\Command\SeedCommand</item>
+            </argument>
+        </arguments>
+    </type>
+
+</config>

@@ -15,7 +15,8 @@
         "magento/module-catalog-inventory": "*"
     },
     "require-dev": {
-        "phpunit/phpunit": "^10.0"
+        "phpunit/phpunit": "^10.0",
+        "symfony/console": "^6.0 || ^7.0"
     },
     "autoload": {
         "files": [

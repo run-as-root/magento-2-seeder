@@ -53,4 +53,32 @@ if (!interface_exists(\Psr\Log\LoggerInterface::class)) {
     ');
 }
 
+if (!class_exists(\Magento\Framework\App\State::class)) {
+    eval('
+        namespace Magento\Framework\App;
+        class State {
+            public function setAreaCode(string $code): void {}
+            public function getAreaCode(): string { return ""; }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Framework\App\Area::class)) {
+    eval('
+        namespace Magento\Framework\App;
+        class Area {
+            public const AREA_ADMINHTML = "adminhtml";
+            public const AREA_FRONTEND = "frontend";
+            public const AREA_GLOBAL = "global";
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Framework\Exception\LocalizedException::class)) {
+    eval('
+        namespace Magento\Framework\Exception;
+        class LocalizedException extends \Exception {}
+    ');
+}
+
 require dirname(__DIR__) . '/vendor/autoload.php';
