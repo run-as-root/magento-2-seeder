@@ -47,8 +47,7 @@ class ProductDataGenerator implements DataGeneratorInterface, SubtypeAwareInterf
         $categoryIds = [];
         $categories = $registry->getAll('category');
         if ($categories !== []) {
-            $category = $faker->randomElement($categories);
-            $categoryIds[] = $category['id'] ?? 2;
+            $categoryIds[] = $this->pickLeastUsedCategoryId($categories, $registry);
         }
 
         $data = [
@@ -108,5 +107,44 @@ class ProductDataGenerator implements DataGeneratorInterface, SubtypeAwareInterf
         }
 
         return $faker->randomElement($pool);
+    }
+
+    /**
+     * Return the id of the category currently holding the fewest products.
+     * Deterministic tiebreaker: first match in insertion order (which is the
+     * order the categories were registered).
+     *
+     * @param list<array<string, mixed>> $categories
+     */
+    private function pickLeastUsedCategoryId(array $categories, GeneratedDataRegistry $registry): int
+    {
+        $counts = [];
+        foreach ($categories as $cat) {
+            $id = (int) ($cat['id'] ?? 0);
+            if ($id > 0) {
+                $counts[$id] = 0;
+            }
+        }
+        if ($counts === []) {
+            return 2; // safe default (default category)
+        }
+
+        foreach ($registry->getAll('product') as $product) {
+            foreach ($product['category_ids'] ?? [] as $cid) {
+                $cid = (int) $cid;
+                if (isset($counts[$cid])) {
+                    $counts[$cid]++;
+                }
+            }
+        }
+
+        $min = min($counts);
+        foreach ($counts as $id => $count) {
+            if ($count === $min) {
+                return $id;
+            }
+        }
+
+        return (int) array_key_first($counts);
     }
 }
