@@ -112,6 +112,7 @@ if (!class_exists(\Magento\Framework\Api\SearchCriteriaBuilder::class)) {
         namespace Magento\Framework\Api;
         class SearchCriteriaBuilder {
             public function addFilter(string $field, $value, ?string $conditionType = null): self { return $this; }
+            public function addFilters(array $filters): self { return $this; }
             public function addSortOrder($sortOrder): self { return $this; }
             public function setPageSize(int $pageSize): self { return $this; }
             public function setCurrentPage(int $currentPage): self { return $this; }
@@ -835,6 +836,95 @@ if (!interface_exists(\Magento\ConfigurableProduct\Api\OptionRepositoryInterface
         namespace Magento\ConfigurableProduct\Api;
         interface OptionRepositoryInterface {
             public function save(string $sku, \Magento\ConfigurableProduct\Api\Data\OptionInterface $option): int;
+        }
+    ');
+}
+
+// Bundle product stubs
+
+if (!interface_exists(\Magento\Bundle\Api\Data\OptionInterface::class)) {
+    eval('
+        namespace Magento\Bundle\Api\Data;
+        interface OptionInterface {
+            public function setTitle(string $title): self;
+            public function setType(string $type): self;
+            public function setRequired(bool $required): self;
+            public function setSku(string $sku): self;
+            public function setPosition(int $position): self;
+            public function getOptionId();
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Bundle\Api\Data\OptionInterfaceFactory::class)) {
+    eval('
+        namespace Magento\Bundle\Api\Data;
+        class OptionInterfaceFactory {
+            public function create(array $data = []): OptionInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Bundle\Api\Data\LinkInterface::class)) {
+    eval('
+        namespace Magento\Bundle\Api\Data;
+        interface LinkInterface {
+            public function setSku(string $sku): self;
+            public function setQty($qty): self;
+            public function setPriceType(int $priceType): self;
+            public function setPrice($price): self;
+            public function setIsDefault(bool $isDefault): self;
+            public function setCanChangeQuantity(int $canChangeQuantity): self;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Bundle\Api\Data\LinkInterfaceFactory::class)) {
+    eval('
+        namespace Magento\Bundle\Api\Data;
+        class LinkInterfaceFactory {
+            public function create(array $data = []): LinkInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Bundle\Api\ProductOptionRepositoryInterface::class)) {
+    eval('
+        namespace Magento\Bundle\Api;
+        interface ProductOptionRepositoryInterface {
+            public function save(\Magento\Catalog\Api\Data\ProductInterface $product, \Magento\Bundle\Api\Data\OptionInterface $option): int;
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Bundle\Api\ProductLinkManagementInterface::class)) {
+    eval('
+        namespace Magento\Bundle\Api;
+        interface ProductLinkManagementInterface {
+            public function addChild(\Magento\Catalog\Api\Data\ProductInterface $product, int $optionId, \Magento\Bundle\Api\Data\LinkInterface $link): int;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Framework\Api\Filter::class)) {
+    eval('
+        namespace Magento\Framework\Api;
+        class Filter {}
+    ');
+}
+
+if (!class_exists(\Magento\Framework\Api\FilterBuilder::class)) {
+    eval('
+        namespace Magento\Framework\Api;
+        class FilterBuilder {
+            public function setField(string $field): self { return $this; }
+            public function setValue($value): self { return $this; }
+            public function setConditionType(string $conditionType): self { return $this; }
+            public function create(): Filter { return new Filter(); }
         }
     ');
 }
