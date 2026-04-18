@@ -6,13 +6,17 @@
     "require": {
         "php": "^8.1",
         "magento/framework": "*",
-        "magento/module-customer": "*",
+        "magento/module-bundle": "*",
         "magento/module-catalog": "*",
-        "magento/module-sales": "*",
-        "magento/module-quote": "*",
-        "magento/module-cms": "*",
-        "magento/module-checkout": "*",
         "magento/module-catalog-inventory": "*",
+        "magento/module-checkout": "*",
+        "magento/module-cms": "*",
+        "magento/module-configurable-product": "*",
+        "magento/module-customer": "*",
+        "magento/module-downloadable": "*",
+        "magento/module-grouped-product": "*",
+        "magento/module-quote": "*",
+        "magento/module-sales": "*",
         "fakerphp/faker": "^1.23"
     },
     "require-dev": {
