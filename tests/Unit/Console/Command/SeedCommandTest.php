@@ -166,4 +166,61 @@ final class SeedCommandTest extends TestCase
         $this->assertStringContainsString('failed', $tester->getDisplay());
         $this->assertStringContainsString('Generator not found', $tester->getDisplay());
     }
+
+    public function test_parse_generate_counts_handles_dotted_product_subtype(): void
+    {
+        $command = $this->makeCommand();
+
+        $result = $this->invokeParseGenerateCounts($command, 'product:100,product.bundle:20,customer:5');
+
+        $this->assertSame(
+            ['product' => 100, 'product.bundle' => 20, 'customer' => 5],
+            $result
+        );
+    }
+
+    public function test_parse_generate_counts_trims_whitespace_around_keys_and_values(): void
+    {
+        $command = $this->makeCommand();
+
+        $result = $this->invokeParseGenerateCounts($command, 'product : 50 ,  product.configurable : 10 ');
+
+        $this->assertSame(
+            ['product' => 50, 'product.configurable' => 10],
+            $result
+        );
+    }
+
+    public function test_parse_generate_counts_skips_malformed_pairs(): void
+    {
+        $command = $this->makeCommand();
+
+        $result = $this->invokeParseGenerateCounts($command, 'product:100,garbage,customer:5');
+
+        $this->assertSame(
+            ['product' => 100, 'customer' => 5],
+            $result
+        );
+    }
+
+    private function makeCommand(): SeedCommand
+    {
+        return new SeedCommand(
+            $this->createMock(State::class),
+            $this->createMock(SeederRunner::class),
+            $this->createMock(GenerateRunner::class),
+        );
+    }
+
+    /** @return array<string, int> */
+    private function invokeParseGenerateCounts(SeedCommand $command, string $input): array
+    {
+        $reflection = new \ReflectionMethod($command, 'parseGenerateCounts');
+        $reflection->setAccessible(true);
+
+        /** @var array<string, int> $result */
+        $result = $reflection->invoke($command, $input);
+
+        return $result;
+    }
 }
