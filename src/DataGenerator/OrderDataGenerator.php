@@ -42,7 +42,14 @@ class OrderDataGenerator implements DataGeneratorInterface, SubtypeAwareInterfac
         $state = $this->forcedSubtype ?? $this->weightedPick($faker, self::STATE_WEIGHTS);
 
         $customer = $registry->getRandom('customer');
-        $products = $registry->getAll('product');
+        $products = array_values(array_filter(
+            $registry->getAll('product'),
+            static fn (array $p): bool => ($p['product_type'] ?? 'simple') === 'simple'
+        ));
+
+        if (empty($products)) {
+            throw new \RuntimeException('No simple products available for order items');
+        }
 
         $itemCount = $faker->numberBetween(1, min(5, count($products)));
         $selectedProducts = $faker->randomElements($products, $itemCount);

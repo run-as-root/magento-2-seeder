@@ -124,6 +124,25 @@ final class OrderDataGeneratorTest extends TestCase
         }
     }
 
+    public function test_generate_only_picks_simple_products_for_items(): void
+    {
+        $faker = \Faker\Factory::create('en_US');
+        $faker->seed(42);
+        $registry = new GeneratedDataRegistry();
+        $registry->add('customer', ['email' => 'c@x.com', 'firstname' => 'C', 'lastname' => 'X', 'addresses' => [['street' => ['1 Main'], 'city' => 'NY', 'postcode' => '10001', 'country_id' => 'US', 'region_id' => 43, 'telephone' => '555-0100']]]);
+        $registry->add('product', ['sku' => 'CFG-1', 'product_type' => 'configurable']);
+        $registry->add('product', ['sku' => 'SIMPLE-1', 'product_type' => 'simple']);
+        $registry->add('product', ['sku' => 'BND-1', 'product_type' => 'bundle']);
+
+        $generator = new OrderDataGenerator();
+        for ($i = 0; $i < 30; $i++) {
+            $data = $generator->generate($faker, $registry);
+            foreach ($data['items'] as $item) {
+                $this->assertSame('SIMPLE-1', $item['sku'], 'Order items must only contain simple products');
+            }
+        }
+    }
+
     public function test_generate_weighted_pick_yields_multiple_states_over_many_iterations(): void
     {
         $faker = Factory::create('en_US');
