@@ -5,8 +5,8 @@ Laravel-style database seeding for Magento 2. Define simple PHP files, run `bin/
 ## Installation
 
 ```bash
-composer require davidlambauer/module-seeder --dev
-bin/magento module:enable DavidLambauer_Seeder
+composer require runasroot/module-seeder --dev
+bin/magento module:enable RunAsRoot_Seeder
 bin/magento setup:upgrade
 ```
 
@@ -63,8 +63,8 @@ For complex scenarios — loops, Faker, conditional logic:
 ```php
 <?php
 // dev/seeders/MassOrderSeeder.php
-use DavidLambauer\Seeder\Api\SeederInterface;
-use DavidLambauer\Seeder\Service\EntityHandlerPool;
+use RunAsRoot\Seeder\Api\SeederInterface;
+use RunAsRoot\Seeder\Service\EntityHandlerPool;
 
 class MassOrderSeeder implements SeederInterface
 {
@@ -123,7 +123,7 @@ Clean runs in reverse dependency order (orders -> products -> categories -> cust
 Add custom entity handlers via `di.xml`:
 
 ```xml
-<type name="DavidLambauer\Seeder\Service\EntityHandlerPool">
+<type name="RunAsRoot\Seeder\Service\EntityHandlerPool">
     <arguments>
         <argument name="handlers" xsi:type="array">
             <item name="custom_entity" xsi:type="object">Vendor\Module\Seeder\CustomEntityHandler</item>
@@ -132,7 +132,7 @@ Add custom entity handlers via `di.xml`:
 </type>
 ```
 
-Your handler must implement `DavidLambauer\Seeder\Api\EntityHandlerInterface`.
+Your handler must implement `RunAsRoot\Seeder\Api\EntityHandlerInterface`.
 
 ## Data Generation with Faker
 
@@ -194,7 +194,7 @@ This triggers the Faker generation pipeline (with dependency resolution) instead
 Add your own data generators via `di.xml`:
 
 ```xml
-<type name="DavidLambauer\Seeder\Service\DataGeneratorPool">
+<type name="RunAsRoot\Seeder\Service\DataGeneratorPool">
     <arguments>
         <argument name="generators" xsi:type="array">
             <item name="custom_entity" xsi:type="object">Vendor\Module\Seeder\CustomEntityDataGenerator</item>
@@ -203,7 +203,7 @@ Add your own data generators via `di.xml`:
 </type>
 ```
 
-Your generator must implement `DavidLambauer\Seeder\Api\DataGeneratorInterface`.
+Your generator must implement `RunAsRoot\Seeder\Api\DataGeneratorInterface`.
 
 ## License
 

@@ -4,7 +4,7 @@
 
 **Goal:** Build a Composer-installable Magento 2 module that provides Laravel-style database seeding via convention-based PHP files and `bin/magento db:seed` CLI.
 
-**Architecture:** Hybrid Composer package / Magento 2 module (`DavidLambauer\Seeder`). Entity handlers abstract Magento service contracts. Seeders are auto-discovered from `dev/seeders/` in the Magento project root. Supports both array-based and class-based seeders.
+**Architecture:** Hybrid Composer package / Magento 2 module (`RunAsRoot\Seeder`). Entity handlers abstract Magento service contracts. Seeders are auto-discovered from `dev/seeders/` in the Magento project root. Supports both array-based and class-based seeders.
 
 **Tech Stack:** PHP 8.1+, Magento 2.4.x, PHPUnit 10, Symfony Console
 
@@ -24,7 +24,7 @@
 
 ```json
 {
-    "name": "davidlambauer/module-seeder",
+    "name": "runasroot/module-seeder",
     "description": "Laravel-style database seeding for Magento 2",
     "type": "magento2-module",
     "license": "MIT",
@@ -47,12 +47,12 @@
             "src/registration.php"
         ],
         "psr-4": {
-            "DavidLambauer\\Seeder\\": "src/"
+            "RunAsRoot\\Seeder\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "DavidLambauer\\Seeder\\Test\\": "tests/"
+            "RunAsRoot\\Seeder\\Test\\": "tests/"
         }
     }
 }
@@ -69,7 +69,7 @@ use Magento\Framework\Component\ComponentRegistrar;
 
 ComponentRegistrar::register(
     ComponentRegistrar::MODULE,
-    'DavidLambauer_Seeder',
+    'RunAsRoot_Seeder',
     __DIR__
 );
 ```
@@ -80,7 +80,7 @@ ComponentRegistrar::register(
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
-    <module name="DavidLambauer_Seeder">
+    <module name="RunAsRoot_Seeder">
         <sequence>
             <module name="Magento_Customer"/>
             <module name="Magento_Catalog"/>
@@ -136,7 +136,7 @@ git commit -m "feat: add module skeleton with composer.json, registration, and p
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Api;
+namespace RunAsRoot\Seeder\Api;
 
 interface SeederInterface
 {
@@ -155,7 +155,7 @@ interface SeederInterface
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Api;
+namespace RunAsRoot\Seeder\Api;
 
 interface EntityHandlerInterface
 {
@@ -174,7 +174,7 @@ interface EntityHandlerInterface
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Service;
+namespace RunAsRoot\Seeder\Service;
 
 final class SeederRunConfig
 {
@@ -214,10 +214,10 @@ git commit -m "feat: add core interfaces SeederInterface, EntityHandlerInterface
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\Service;
+namespace RunAsRoot\Seeder\Test\Unit\Service;
 
-use DavidLambauer\Seeder\Api\EntityHandlerInterface;
-use DavidLambauer\Seeder\Service\EntityHandlerPool;
+use RunAsRoot\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\Service\EntityHandlerPool;
 use PHPUnit\Framework\TestCase;
 
 final class EntityHandlerPoolTest extends TestCase
@@ -284,9 +284,9 @@ Expected: FAIL — class `EntityHandlerPool` not found
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Service;
+namespace RunAsRoot\Seeder\Service;
 
-use DavidLambauer\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\Api\EntityHandlerInterface;
 
 class EntityHandlerPool
 {
@@ -345,11 +345,11 @@ git commit -m "feat: add EntityHandlerPool with type-based handler registry"
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\Service;
+namespace RunAsRoot\Seeder\Test\Unit\Service;
 
-use DavidLambauer\Seeder\Api\EntityHandlerInterface;
-use DavidLambauer\Seeder\Service\ArraySeederAdapter;
-use DavidLambauer\Seeder\Service\EntityHandlerPool;
+use RunAsRoot\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\Service\ArraySeederAdapter;
+use RunAsRoot\Seeder\Service\EntityHandlerPool;
 use PHPUnit\Framework\TestCase;
 
 final class ArraySeederAdapterTest extends TestCase
@@ -461,9 +461,9 @@ Expected: FAIL — class `ArraySeederAdapter` not found
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Service;
+namespace RunAsRoot\Seeder\Service;
 
-use DavidLambauer\Seeder\Api\SeederInterface;
+use RunAsRoot\Seeder\Api\SeederInterface;
 
 class ArraySeederAdapter implements SeederInterface
 {
@@ -531,11 +531,11 @@ Uses temp directories with fixture files. Class-based seeder fixtures use unique
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\Service;
+namespace RunAsRoot\Seeder\Test\Unit\Service;
 
-use DavidLambauer\Seeder\Api\EntityHandlerInterface;
-use DavidLambauer\Seeder\Service\EntityHandlerPool;
-use DavidLambauer\Seeder\Service\SeederDiscovery;
+use RunAsRoot\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\Service\EntityHandlerPool;
+use RunAsRoot\Seeder\Service\SeederDiscovery;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\ObjectManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -597,7 +597,7 @@ final class SeederDiscoveryTest extends TestCase
         file_put_contents(
             $this->tempDir . '/dev/seeders/' . $className . '.php',
             sprintf(
-                "<?php\nuse DavidLambauer\\Seeder\\Api\\SeederInterface;\n\n"
+                "<?php\nuse RunAsRoot\\Seeder\\Api\\SeederInterface;\n\n"
                 . "class %s implements SeederInterface {\n"
                 . "    public function getType(): string { return 'customer'; }\n"
                 . "    public function getOrder(): int { return 10; }\n"
@@ -607,7 +607,7 @@ final class SeederDiscoveryTest extends TestCase
             )
         );
 
-        $mockSeeder = $this->createMock(\DavidLambauer\Seeder\Api\SeederInterface::class);
+        $mockSeeder = $this->createMock(\RunAsRoot\Seeder\Api\SeederInterface::class);
         $mockSeeder->method('getType')->willReturn('customer');
 
         $objectManager = $this->createMock(ObjectManagerInterface::class);
@@ -682,9 +682,9 @@ Expected: FAIL — class `SeederDiscovery` not found
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Service;
+namespace RunAsRoot\Seeder\Service;
 
-use DavidLambauer\Seeder\Api\SeederInterface;
+use RunAsRoot\Seeder\Api\SeederInterface;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\ObjectManagerInterface;
 
@@ -767,14 +767,14 @@ git commit -m "feat: add SeederDiscovery with convention-based file scanning fro
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\Service;
+namespace RunAsRoot\Seeder\Test\Unit\Service;
 
-use DavidLambauer\Seeder\Api\EntityHandlerInterface;
-use DavidLambauer\Seeder\Api\SeederInterface;
-use DavidLambauer\Seeder\Service\EntityHandlerPool;
-use DavidLambauer\Seeder\Service\SeederDiscovery;
-use DavidLambauer\Seeder\Service\SeederRunConfig;
-use DavidLambauer\Seeder\Service\SeederRunner;
+use RunAsRoot\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\Api\SeederInterface;
+use RunAsRoot\Seeder\Service\EntityHandlerPool;
+use RunAsRoot\Seeder\Service\SeederDiscovery;
+use RunAsRoot\Seeder\Service\SeederRunConfig;
+use RunAsRoot\Seeder\Service\SeederRunner;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -962,9 +962,9 @@ Expected: FAIL — class `SeederRunner` not found
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Service;
+namespace RunAsRoot\Seeder\Service;
 
-use DavidLambauer\Seeder\Api\SeederInterface;
+use RunAsRoot\Seeder\Api\SeederInterface;
 use Psr\Log\LoggerInterface;
 
 class SeederRunner
@@ -1075,11 +1075,11 @@ git commit -m "feat: add SeederRunner with filtering, ordering, fresh-clean, and
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\Console\Command;
+namespace RunAsRoot\Seeder\Test\Unit\Console\Command;
 
-use DavidLambauer\Seeder\Console\Command\SeedCommand;
-use DavidLambauer\Seeder\Service\SeederRunConfig;
-use DavidLambauer\Seeder\Service\SeederRunner;
+use RunAsRoot\Seeder\Console\Command\SeedCommand;
+use RunAsRoot\Seeder\Service\SeederRunConfig;
+use RunAsRoot\Seeder\Service\SeederRunner;
 use Magento\Framework\App\State;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
@@ -1176,10 +1176,10 @@ Expected: FAIL — class `SeedCommand` not found
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Console\Command;
+namespace RunAsRoot\Seeder\Console\Command;
 
-use DavidLambauer\Seeder\Service\SeederRunConfig;
-use DavidLambauer\Seeder\Service\SeederRunner;
+use RunAsRoot\Seeder\Service\SeederRunConfig;
+use RunAsRoot\Seeder\Service\SeederRunner;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\State;
 use Magento\Framework\Exception\LocalizedException;
@@ -1301,14 +1301,14 @@ Expected: OK (4 tests, multiple assertions)
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
 
     <!-- Entity Handler Pool -->
-    <type name="DavidLambauer\Seeder\Service\EntityHandlerPool">
+    <type name="RunAsRoot\Seeder\Service\EntityHandlerPool">
         <arguments>
             <argument name="handlers" xsi:type="array">
-                <item name="customer" xsi:type="object">DavidLambauer\Seeder\EntityHandler\CustomerHandler</item>
-                <item name="product" xsi:type="object">DavidLambauer\Seeder\EntityHandler\ProductHandler</item>
-                <item name="category" xsi:type="object">DavidLambauer\Seeder\EntityHandler\CategoryHandler</item>
-                <item name="order" xsi:type="object">DavidLambauer\Seeder\EntityHandler\OrderHandler</item>
-                <item name="cms" xsi:type="object">DavidLambauer\Seeder\EntityHandler\CmsHandler</item>
+                <item name="customer" xsi:type="object">RunAsRoot\Seeder\EntityHandler\CustomerHandler</item>
+                <item name="product" xsi:type="object">RunAsRoot\Seeder\EntityHandler\ProductHandler</item>
+                <item name="category" xsi:type="object">RunAsRoot\Seeder\EntityHandler\CategoryHandler</item>
+                <item name="order" xsi:type="object">RunAsRoot\Seeder\EntityHandler\OrderHandler</item>
+                <item name="cms" xsi:type="object">RunAsRoot\Seeder\EntityHandler\CmsHandler</item>
             </argument>
         </arguments>
     </type>
@@ -1317,7 +1317,7 @@ Expected: OK (4 tests, multiple assertions)
     <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>
             <argument name="commands" xsi:type="array">
-                <item name="seeder_db_seed" xsi:type="object">DavidLambauer\Seeder\Console\Command\SeedCommand</item>
+                <item name="seeder_db_seed" xsi:type="object">RunAsRoot\Seeder\Console\Command\SeedCommand</item>
             </argument>
         </arguments>
     </type>
@@ -1349,9 +1349,9 @@ git commit -m "feat: add db:seed CLI command with --only, --exclude, --fresh, --
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\EntityHandler;
+namespace RunAsRoot\Seeder\Test\Unit\EntityHandler;
 
-use DavidLambauer\Seeder\EntityHandler\CustomerHandler;
+use RunAsRoot\Seeder\EntityHandler\CustomerHandler;
 use Magento\Customer\Api\AccountManagementInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
@@ -1454,9 +1454,9 @@ Expected: FAIL — class `CustomerHandler` not found
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\EntityHandler;
+namespace RunAsRoot\Seeder\EntityHandler;
 
-use DavidLambauer\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\Api\EntityHandlerInterface;
 use Magento\Customer\Api\AccountManagementInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterfaceFactory;
@@ -1538,9 +1538,9 @@ git commit -m "feat: add CustomerHandler using AccountManagement service contrac
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\EntityHandler;
+namespace RunAsRoot\Seeder\Test\Unit\EntityHandler;
 
-use DavidLambauer\Seeder\EntityHandler\CategoryHandler;
+use RunAsRoot\Seeder\EntityHandler\CategoryHandler;
 use Magento\Catalog\Api\CategoryListInterface;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Api\Data\CategoryInterface;
@@ -1641,9 +1641,9 @@ Expected: FAIL
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\EntityHandler;
+namespace RunAsRoot\Seeder\EntityHandler;
 
-use DavidLambauer\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\Api\EntityHandlerInterface;
 use Magento\Catalog\Api\CategoryListInterface;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Api\Data\CategoryInterfaceFactory;
@@ -1731,9 +1731,9 @@ git commit -m "feat: add CategoryHandler with protected root/default category ex
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\EntityHandler;
+namespace RunAsRoot\Seeder\Test\Unit\EntityHandler;
 
-use DavidLambauer\Seeder\EntityHandler\ProductHandler;
+use RunAsRoot\Seeder\EntityHandler\ProductHandler;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\Data\ProductInterfaceFactory;
 use Magento\Catalog\Api\Data\ProductSearchResultsInterface;
@@ -1835,9 +1835,9 @@ Expected: FAIL
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\EntityHandler;
+namespace RunAsRoot\Seeder\EntityHandler;
 
-use DavidLambauer\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\Api\EntityHandlerInterface;
 use Magento\Catalog\Api\Data\ProductInterfaceFactory;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
@@ -1939,9 +1939,9 @@ Consult Context7 `/magento/magento2` for exact API signatures if compile errors 
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\EntityHandler;
+namespace RunAsRoot\Seeder\Test\Unit\EntityHandler;
 
-use DavidLambauer\Seeder\EntityHandler\OrderHandler;
+use RunAsRoot\Seeder\EntityHandler\OrderHandler;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
 use Magento\Quote\Api\CartItemRepositoryInterface;
@@ -2080,9 +2080,9 @@ Expected: FAIL
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\EntityHandler;
+namespace RunAsRoot\Seeder\EntityHandler;
 
-use DavidLambauer\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\Api\EntityHandlerInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Quote\Api\CartItemRepositoryInterface;
 use Magento\Quote\Api\CartManagementInterface;
@@ -2194,9 +2194,9 @@ git commit -m "feat: add OrderHandler with quote-to-order flow"
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\EntityHandler;
+namespace RunAsRoot\Seeder\Test\Unit\EntityHandler;
 
-use DavidLambauer\Seeder\EntityHandler\CmsHandler;
+use RunAsRoot\Seeder\EntityHandler\CmsHandler;
 use Magento\Cms\Api\BlockRepositoryInterface;
 use Magento\Cms\Api\Data\BlockInterface;
 use Magento\Cms\Api\Data\BlockInterfaceFactory;
@@ -2330,9 +2330,9 @@ Expected: FAIL
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\EntityHandler;
+namespace RunAsRoot\Seeder\EntityHandler;
 
-use DavidLambauer\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\Api\EntityHandlerInterface;
 use Magento\Cms\Api\BlockRepositoryInterface;
 use Magento\Cms\Api\Data\BlockInterfaceFactory;
 use Magento\Cms\Api\Data\PageInterfaceFactory;
@@ -2532,8 +2532,8 @@ return [
 
 declare(strict_types=1);
 
-use DavidLambauer\Seeder\Api\SeederInterface;
-use DavidLambauer\Seeder\Service\EntityHandlerPool;
+use RunAsRoot\Seeder\Api\SeederInterface;
+use RunAsRoot\Seeder\Service\EntityHandlerPool;
 
 class MassOrderSeeder implements SeederInterface
 {
@@ -2585,8 +2585,8 @@ Laravel-style database seeding for Magento 2. Define simple PHP files, run `bin/
 ## Installation
 
 ```bash
-composer require davidlambauer/module-seeder --dev
-bin/magento module:enable DavidLambauer_Seeder
+composer require runasroot/module-seeder --dev
+bin/magento module:enable RunAsRoot_Seeder
 bin/magento setup:upgrade
 ```
 
@@ -2643,8 +2643,8 @@ For complex scenarios — loops, Faker, conditional logic:
 ```php
 <?php
 // dev/seeders/MassOrderSeeder.php
-use DavidLambauer\Seeder\Api\SeederInterface;
-use DavidLambauer\Seeder\Service\EntityHandlerPool;
+use RunAsRoot\Seeder\Api\SeederInterface;
+use RunAsRoot\Seeder\Service\EntityHandlerPool;
 
 class MassOrderSeeder implements SeederInterface
 {
@@ -2691,7 +2691,7 @@ Override with `'order' => 5` in array seeders or `getOrder(): int` in class seed
 Add custom entity handlers via `di.xml`:
 
 ```xml
-<type name="DavidLambauer\Seeder\Service\EntityHandlerPool">
+<type name="RunAsRoot\Seeder\Service\EntityHandlerPool">
     <arguments>
         <argument name="handlers" xsi:type="array">
             <item name="custom_entity" xsi:type="object">Vendor\Module\Seeder\CustomEntityHandler</item>
@@ -2700,7 +2700,7 @@ Add custom entity handlers via `di.xml`:
 </type>
 ```
 
-Your handler must implement `DavidLambauer\Seeder\Api\EntityHandlerInterface`.
+Your handler must implement `RunAsRoot\Seeder\Api\EntityHandlerInterface`.
 
 ## License
 

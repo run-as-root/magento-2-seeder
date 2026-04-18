@@ -36,6 +36,16 @@ if (!class_exists(\Magento\Framework\App\Filesystem\DirectoryList::class)) {
     ');
 }
 
+if (!class_exists(\Magento\CatalogInventory\Model\Indexer\Stock\Processor::class)) {
+    eval('
+        namespace Magento\CatalogInventory\Model\Indexer\Stock;
+        class Processor {
+            public function reindexRow($productId, $forceReindex = false): void {}
+            public function reindexList(array $productIds, $forceReindex = false): void {}
+        }
+    ');
+}
+
 if (!interface_exists(\Psr\Log\LoggerInterface::class)) {
     eval('
         namespace Psr\Log;
@@ -262,6 +272,27 @@ if (!interface_exists(\Magento\Customer\Api\AccountManagementInterface::class)) 
     ');
 }
 
+if (!interface_exists(\Magento\Store\Api\Data\StoreInterface::class)) {
+    eval('
+        namespace Magento\Store\Api\Data;
+        interface StoreInterface {
+            public function getId();
+            public function getCode();
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Store\Model\StoreManagerInterface::class)) {
+    eval('
+        namespace Magento\Store\Model;
+        interface StoreManagerInterface {
+            public function setCurrentStore($store);
+            public function getStore($storeId = null): \Magento\Store\Api\Data\StoreInterface;
+            public function getDefaultStoreView(): ?\Magento\Store\Api\Data\StoreInterface;
+        }
+    ');
+}
+
 if (!interface_exists(\Magento\Customer\Api\CustomerRepositoryInterface::class)) {
     eval('
         namespace Magento\Customer\Api;
@@ -280,6 +311,7 @@ if (!interface_exists(\Magento\Catalog\Api\Data\ProductInterface::class)) {
     eval('
         namespace Magento\Catalog\Api\Data;
         interface ProductInterface {
+            public function getId();
             public function getSku(): ?string;
             public function setSku(string $sku): self;
             public function getName(): ?string;
@@ -332,6 +364,35 @@ if (!interface_exists(\Magento\Catalog\Api\ProductRepositoryInterface::class)) {
             public function delete(\Magento\Catalog\Api\Data\ProductInterface $product): bool;
             public function deleteById(string $sku): bool;
             public function getList(\Magento\Framework\Api\SearchCriteriaInterface $searchCriteria): \Magento\Catalog\Api\Data\ProductSearchResultsInterface;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Catalog\Model\Product::class)) {
+    eval('
+        namespace Magento\Catalog\Model;
+        class Product implements \Magento\Catalog\Api\Data\ProductInterface {
+            public function getId() { return null; }
+            public function getSku(): ?string { return null; }
+            public function setSku(string $sku): self { return $this; }
+            public function getName(): ?string { return null; }
+            public function setName(string $name): self { return $this; }
+            public function getPrice(): ?float { return null; }
+            public function setPrice(float $price): self { return $this; }
+            public function getAttributeSetId(): ?int { return null; }
+            public function setAttributeSetId(int $attributeSetId): self { return $this; }
+            public function getStatus(): ?int { return null; }
+            public function setStatus(int $status): self { return $this; }
+            public function getVisibility(): ?int { return null; }
+            public function setVisibility(int $visibility): self { return $this; }
+            public function getTypeId(): ?string { return null; }
+            public function setTypeId(string $typeId): self { return $this; }
+            public function getWeight(): ?float { return null; }
+            public function setWeight(float $weight): self { return $this; }
+            public function setCustomAttribute(string $attributeCode, $attributeValue): self { return $this; }
+            public function addImageToMediaGallery($file, $mediaAttribute = null, $move = false, $exclude = true): self { return $this; }
+            public function setStockData(array $stockData): self { return $this; }
+            public function setWebsiteIds(array $websiteIds): self { return $this; }
         }
     ');
 }
@@ -557,6 +618,7 @@ if (!interface_exists(\Magento\Quote\Api\Data\CartInterface::class)) {
         namespace Magento\Quote\Api\Data;
         interface CartInterface {
             public function getId(): ?int;
+            public function setStoreId($storeId);
             public function setCustomerEmail(string $email);
             public function setCustomerIsGuest(bool $isGuest);
             public function setCustomerFirstname(string $firstname);

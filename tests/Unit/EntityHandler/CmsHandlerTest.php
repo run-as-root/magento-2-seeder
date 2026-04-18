@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\EntityHandler;
+namespace RunAsRoot\Seeder\Test\Unit\EntityHandler;
 
-use DavidLambauer\Seeder\EntityHandler\CmsHandler;
+use RunAsRoot\Seeder\EntityHandler\CmsHandler;
 use Magento\Cms\Api\BlockRepositoryInterface;
 use Magento\Cms\Api\Data\BlockInterface;
 use Magento\Cms\Api\Data\BlockInterfaceFactory;

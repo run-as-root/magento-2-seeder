@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\Service;
+namespace RunAsRoot\Seeder\Test\Unit\Service;
 
-use DavidLambauer\Seeder\Service\GeneratedDataRegistry;
+use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 use PHPUnit\Framework\TestCase;
 
 final class GeneratedDataRegistryTest extends TestCase

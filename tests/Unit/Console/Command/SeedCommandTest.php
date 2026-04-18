@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\Console\Command;
+namespace RunAsRoot\Seeder\Test\Unit\Console\Command;
 
-use DavidLambauer\Seeder\Console\Command\SeedCommand;
-use DavidLambauer\Seeder\Service\GenerateRunConfig;
-use DavidLambauer\Seeder\Service\GenerateRunner;
-use DavidLambauer\Seeder\Service\SeederRunConfig;
-use DavidLambauer\Seeder\Service\SeederRunner;
+use RunAsRoot\Seeder\Console\Command\SeedCommand;
+use RunAsRoot\Seeder\Service\GenerateRunConfig;
+use RunAsRoot\Seeder\Service\GenerateRunner;
+use RunAsRoot\Seeder\Service\SeederRunConfig;
+use RunAsRoot\Seeder\Service\SeederRunner;
 use Magento\Framework\App\State;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;

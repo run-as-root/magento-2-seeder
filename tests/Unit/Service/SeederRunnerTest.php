@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\Service;
+namespace RunAsRoot\Seeder\Test\Unit\Service;
 
-use DavidLambauer\Seeder\Api\EntityHandlerInterface;
-use DavidLambauer\Seeder\Api\SeederInterface;
-use DavidLambauer\Seeder\Service\EntityHandlerPool;
-use DavidLambauer\Seeder\Service\SeederDiscovery;
-use DavidLambauer\Seeder\Service\SeederRunConfig;
-use DavidLambauer\Seeder\Service\SeederRunner;
+use RunAsRoot\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\Api\SeederInterface;
+use RunAsRoot\Seeder\Service\EntityHandlerPool;
+use RunAsRoot\Seeder\Service\SeederDiscovery;
+use RunAsRoot\Seeder\Service\SeederRunConfig;
+use RunAsRoot\Seeder\Service\SeederRunner;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 

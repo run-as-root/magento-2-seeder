@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Console\Command;
+namespace RunAsRoot\Seeder\Console\Command;
 
-use DavidLambauer\Seeder\Service\GenerateRunConfig;
-use DavidLambauer\Seeder\Service\GenerateRunner;
-use DavidLambauer\Seeder\Service\SeederRunConfig;
-use DavidLambauer\Seeder\Service\SeederRunner;
+use RunAsRoot\Seeder\Service\GenerateRunConfig;
+use RunAsRoot\Seeder\Service\GenerateRunner;
+use RunAsRoot\Seeder\Service\SeederRunConfig;
+use RunAsRoot\Seeder\Service\SeederRunner;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\State;
 use Magento\Framework\Exception\LocalizedException;
@@ -152,19 +152,32 @@ class SeedCommand extends Command
         foreach ($results as $result) {
             if ($result['success']) {
                 $output->writeln(sprintf('<info>Generated %d %s(s)... done</info>', $result['count'], $result['type']));
-            } else {
-                $hasError = true;
-                $output->writeln(sprintf(
-                    '<error>Generating %s... failed: %s</error>',
-                    $result['type'],
-                    $result['error'] ?? 'Unknown error'
-                ));
+                continue;
             }
+
+            $hasError = true;
+            $output->writeln(sprintf(
+                '<error>Generated %d/%d %s(s), %d failed: %s</error>',
+                $result['count'],
+                $result['count'] + ($result['failed'] ?? 0),
+                $result['type'],
+                $result['failed'] ?? 0,
+                $result['error'] ?? 'Unknown error'
+            ));
         }
 
         $totalCount = array_sum(array_column($results, 'count'));
+        $totalFailed = array_sum(array_map(static fn (array $r): int => $r['failed'] ?? 0, $results));
         $output->writeln('');
-        $output->writeln(sprintf('Done. %d entities generated.', $totalCount));
+        if ($hasError) {
+            $output->writeln(sprintf(
+                '<error>Done with errors. %d entities generated, %d failed. See var/log for details.</error>',
+                $totalCount,
+                $totalFailed
+            ));
+        } else {
+            $output->writeln(sprintf('Done. %d entities generated.', $totalCount));
+        }
 
         return $hasError ? Command::FAILURE : Command::SUCCESS;
     }

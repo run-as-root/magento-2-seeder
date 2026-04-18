@@ -3,27 +3,27 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
 
     <!-- Entity Handler Pool -->
-    <type name="DavidLambauer\Seeder\Service\EntityHandlerPool">
+    <type name="RunAsRoot\Seeder\Service\EntityHandlerPool">
         <arguments>
             <argument name="handlers" xsi:type="array">
-                <item name="customer" xsi:type="object">DavidLambauer\Seeder\EntityHandler\CustomerHandler</item>
-                <item name="product" xsi:type="object">DavidLambauer\Seeder\EntityHandler\ProductHandler</item>
-                <item name="category" xsi:type="object">DavidLambauer\Seeder\EntityHandler\CategoryHandler</item>
-                <item name="order" xsi:type="object">DavidLambauer\Seeder\EntityHandler\OrderHandler</item>
-                <item name="cms" xsi:type="object">DavidLambauer\Seeder\EntityHandler\CmsHandler</item>
+                <item name="customer" xsi:type="object">RunAsRoot\Seeder\EntityHandler\CustomerHandler</item>
+                <item name="product" xsi:type="object">RunAsRoot\Seeder\EntityHandler\ProductHandler</item>
+                <item name="category" xsi:type="object">RunAsRoot\Seeder\EntityHandler\CategoryHandler</item>
+                <item name="order" xsi:type="object">RunAsRoot\Seeder\EntityHandler\OrderHandler</item>
+                <item name="cms" xsi:type="object">RunAsRoot\Seeder\EntityHandler\CmsHandler</item>
             </argument>
         </arguments>
     </type>
 
     <!-- Data Generator Pool -->
-    <type name="DavidLambauer\Seeder\Service\DataGeneratorPool">
+    <type name="RunAsRoot\Seeder\Service\DataGeneratorPool">
         <arguments>
             <argument name="generators" xsi:type="array">
-                <item name="customer" xsi:type="object">DavidLambauer\Seeder\DataGenerator\CustomerDataGenerator</item>
-                <item name="product" xsi:type="object">DavidLambauer\Seeder\DataGenerator\ProductDataGenerator</item>
-                <item name="category" xsi:type="object">DavidLambauer\Seeder\DataGenerator\CategoryDataGenerator</item>
-                <item name="order" xsi:type="object">DavidLambauer\Seeder\DataGenerator\OrderDataGenerator</item>
-                <item name="cms" xsi:type="object">DavidLambauer\Seeder\DataGenerator\CmsDataGenerator</item>
+                <item name="customer" xsi:type="object">RunAsRoot\Seeder\DataGenerator\CustomerDataGenerator</item>
+                <item name="product" xsi:type="object">RunAsRoot\Seeder\DataGenerator\ProductDataGenerator</item>
+                <item name="category" xsi:type="object">RunAsRoot\Seeder\DataGenerator\CategoryDataGenerator</item>
+                <item name="order" xsi:type="object">RunAsRoot\Seeder\DataGenerator\OrderDataGenerator</item>
+                <item name="cms" xsi:type="object">RunAsRoot\Seeder\DataGenerator\CmsDataGenerator</item>
             </argument>
         </arguments>
     </type>
@@ -32,7 +32,7 @@
     <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>
             <argument name="commands" xsi:type="array">
-                <item name="seeder_db_seed" xsi:type="object">DavidLambauer\Seeder\Console\Command\SeedCommand</item>
+                <item name="seeder_db_seed" xsi:type="object">RunAsRoot\Seeder\Console\Command\SeedCommand</item>
             </argument>
         </arguments>
     </type>

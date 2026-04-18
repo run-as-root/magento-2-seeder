@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\Service;
+namespace RunAsRoot\Seeder\Test\Unit\Service;
 
-use DavidLambauer\Seeder\Api\DataGeneratorInterface;
-use DavidLambauer\Seeder\Service\DataGeneratorPool;
+use RunAsRoot\Seeder\Api\DataGeneratorInterface;
+use RunAsRoot\Seeder\Service\DataGeneratorPool;
 use PHPUnit\Framework\TestCase;
 
 final class DataGeneratorPoolTest extends TestCase

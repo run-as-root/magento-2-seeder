@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\Service;
+namespace RunAsRoot\Seeder\Test\Unit\Service;
 
-use DavidLambauer\Seeder\Api\DataGeneratorInterface;
-use DavidLambauer\Seeder\Api\EntityHandlerInterface;
-use DavidLambauer\Seeder\Service\DataGeneratorPool;
-use DavidLambauer\Seeder\Service\DependencyResolver;
-use DavidLambauer\Seeder\Service\EntityHandlerPool;
-use DavidLambauer\Seeder\Service\FakerFactory;
-use DavidLambauer\Seeder\Service\GeneratedDataRegistry;
-use DavidLambauer\Seeder\Service\GenerateRunConfig;
-use DavidLambauer\Seeder\Service\GenerateRunner;
+use RunAsRoot\Seeder\Api\DataGeneratorInterface;
+use RunAsRoot\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\Service\DataGeneratorPool;
+use RunAsRoot\Seeder\Service\DependencyResolver;
+use RunAsRoot\Seeder\Service\EntityHandlerPool;
+use RunAsRoot\Seeder\Service\FakerFactory;
+use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
+use RunAsRoot\Seeder\Service\GenerateRunConfig;
+use RunAsRoot\Seeder\Service\GenerateRunner;
 use Psr\Log\LoggerInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -117,6 +117,77 @@ final class GenerateRunnerTest extends TestCase
         $stored = $registry->getAll('customer');
         $this->assertCount(1, $stored);
         $this->assertSame('a@test.com', $stored[0]['email']);
+    }
+
+    public function test_all_iterations_failing_reports_failure_even_without_stop_on_error(): void
+    {
+        $generator = $this->createMock(DataGeneratorInterface::class);
+        $generator->method('getType')->willReturn('customer');
+        $generator->method('getOrder')->willReturn(30);
+        $generator->method('getDependencies')->willReturn([]);
+        $generator->method('generate')->willReturn(['email' => 'a@test.com']);
+
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $handler->method('create')->willThrowException(new \RuntimeException('invalid phone'));
+
+        $genPool = new DataGeneratorPool(['customer' => $generator]);
+        $handlerPool = new EntityHandlerPool(['customer' => $handler]);
+        $resolver = new DependencyResolver($genPool);
+
+        $runner = new GenerateRunner(
+            $genPool,
+            $handlerPool,
+            $resolver,
+            new FakerFactory(),
+            new GeneratedDataRegistry(),
+            $this->createMock(LoggerInterface::class),
+        );
+
+        $config = new GenerateRunConfig(counts: ['customer' => 3]);
+        $results = $runner->run($config);
+
+        $this->assertFalse($results[0]['success'], 'All-failed run must report success=false');
+        $this->assertSame(0, $results[0]['count']);
+        $this->assertSame(3, $results[0]['failed']);
+        $this->assertSame('invalid phone', $results[0]['error']);
+    }
+
+    public function test_partial_failure_reports_failed_count(): void
+    {
+        $generator = $this->createMock(DataGeneratorInterface::class);
+        $generator->method('getType')->willReturn('customer');
+        $generator->method('getOrder')->willReturn(30);
+        $generator->method('getDependencies')->willReturn([]);
+        $generator->method('generate')->willReturn(['email' => 'a@test.com']);
+
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $calls = 0;
+        $handler->method('create')->willReturnCallback(function () use (&$calls): void {
+            $calls++;
+            if ($calls === 2) {
+                throw new \RuntimeException('boom');
+            }
+        });
+
+        $genPool = new DataGeneratorPool(['customer' => $generator]);
+        $handlerPool = new EntityHandlerPool(['customer' => $handler]);
+        $resolver = new DependencyResolver($genPool);
+
+        $runner = new GenerateRunner(
+            $genPool,
+            $handlerPool,
+            $resolver,
+            new FakerFactory(),
+            new GeneratedDataRegistry(),
+            $this->createMock(LoggerInterface::class),
+        );
+
+        $config = new GenerateRunConfig(counts: ['customer' => 3]);
+        $results = $runner->run($config);
+
+        $this->assertFalse($results[0]['success']);
+        $this->assertSame(2, $results[0]['count']);
+        $this->assertSame(1, $results[0]['failed']);
     }
 
     public function test_stop_on_error_halts_generation(): void

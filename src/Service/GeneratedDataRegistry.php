@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Service;
+namespace RunAsRoot\Seeder\Service;
 
 class GeneratedDataRegistry
 {

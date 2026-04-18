@@ -2,16 +2,17 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\EntityHandler;
+namespace RunAsRoot\Seeder\EntityHandler;
 
-use DavidLambauer\Seeder\Api\EntityHandlerInterface;
-use DavidLambauer\Seeder\Service\ImageDownloader;
+use RunAsRoot\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\Service\ImageDownloader;
 use Magento\Catalog\Api\Data\ProductInterfaceFactory;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\Catalog\Model\Product\Type;
 use Magento\Catalog\Model\Product\Visibility;
 use Magento\CatalogInventory\Api\StockRegistryInterface;
+use Magento\CatalogInventory\Model\Indexer\Stock\Processor as StockIndexerProcessor;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Filesystem\DirectoryList;
 
@@ -24,6 +25,7 @@ class ProductHandler implements EntityHandlerInterface
         private readonly StockRegistryInterface $stockRegistry,
         private readonly ImageDownloader $imageDownloader,
         private readonly DirectoryList $directoryList,
+        private readonly StockIndexerProcessor $stockIndexerProcessor,
     ) {
     }
 
@@ -60,17 +62,43 @@ class ProductHandler implements EntityHandlerInterface
             $product->setCustomAttribute('category_ids', $data['category_ids']);
         }
 
-        $this->productRepository->save($product);
+        if (method_exists($product, 'setStockData')) {
+            $product->setStockData([
+                'use_config_manage_stock' => 1,
+                'manage_stock' => 1,
+                'is_in_stock' => 1,
+                'qty' => $data['qty'] ?? 100,
+            ]);
+        }
+
+        if (method_exists($product, 'setWebsiteIds')) {
+            $product->setWebsiteIds($data['website_ids'] ?? [1]);
+        }
 
         if (isset($data['image_url'])) {
             $importDir = $this->directoryList->getRoot() . '/pub/media/catalog/product/import';
-            $this->imageDownloader->download($data['image_url'], $importDir);
+            $filename = $this->imageDownloader->download($data['image_url'], $importDir);
+            if ($filename !== null && method_exists($product, 'addImageToMediaGallery')) {
+                $product->addImageToMediaGallery(
+                    $importDir . '/' . $filename,
+                    ['image', 'small_image', 'thumbnail'],
+                    true,
+                    false
+                );
+            }
         }
+
+        $savedProduct = $this->productRepository->save($product);
 
         $stockItem = $this->stockRegistry->getStockItemBySku($data['sku']);
         $stockItem->setQty($data['qty'] ?? 100);
         $stockItem->setIsInStock(true);
         $this->stockRegistry->updateStockItemBySku($data['sku'], $stockItem);
+
+        $productId = (int) $savedProduct->getId();
+        if ($productId > 0) {
+            $this->stockIndexerProcessor->reindexRow($productId, true);
+        }
     }
 
     public function clean(): void

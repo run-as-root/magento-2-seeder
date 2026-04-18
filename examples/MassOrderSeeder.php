@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use DavidLambauer\Seeder\Api\SeederInterface;
-use DavidLambauer\Seeder\Service\EntityHandlerPool;
+use RunAsRoot\Seeder\Api\SeederInterface;
+use RunAsRoot\Seeder\Service\EntityHandlerPool;
 
 class MassOrderSeeder implements SeederInterface
 {

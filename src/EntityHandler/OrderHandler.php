@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\EntityHandler;
+namespace RunAsRoot\Seeder\EntityHandler;
 
-use DavidLambauer\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\Api\EntityHandlerInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Quote\Api\CartItemRepositoryInterface;
 use Magento\Quote\Api\CartManagementInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartItemInterfaceFactory;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Store\Model\StoreManagerInterface;
 
 class OrderHandler implements EntityHandlerInterface
 {
@@ -21,6 +22,7 @@ class OrderHandler implements EntityHandlerInterface
         private readonly CartItemRepositoryInterface $cartItemRepository,
         private readonly OrderRepositoryInterface $orderRepository,
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
+        private readonly StoreManagerInterface $storeManager,
     ) {
     }
 
@@ -31,6 +33,9 @@ class OrderHandler implements EntityHandlerInterface
 
     public function create(array $data): void
     {
+        $storeId = (int) ($data['store_id'] ?? $this->storeManager->getDefaultStoreView()?->getId() ?? 1);
+        $this->storeManager->setCurrentStore($storeId);
+
         $cartId = $this->cartManagement->createEmptyCart();
 
         foreach ($data['items'] as $itemData) {
@@ -42,6 +47,7 @@ class OrderHandler implements EntityHandlerInterface
         }
 
         $quote = $this->cartRepository->get($cartId);
+        $quote->setStoreId($storeId);
         $quote->setCustomerEmail($data['customer_email'] ?? 'guest@example.com');
         $quote->setCustomerIsGuest(true);
         $quote->setCustomerFirstname($data['firstname'] ?? 'Seed');

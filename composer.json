@@ -1,5 +1,5 @@
 {
-    "name": "davidlambauer/module-seeder",
+    "name": "runasroot/module-seeder",
     "description": "Laravel-style database seeding for Magento 2",
     "type": "magento2-module",
     "license": "MIT",
@@ -24,12 +24,12 @@
             "src/registration.php"
         ],
         "psr-4": {
-            "DavidLambauer\\Seeder\\": "src/"
+            "RunAsRoot\\Seeder\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "DavidLambauer\\Seeder\\Test\\": "tests/"
+            "RunAsRoot\\Seeder\\Test\\": "tests/"
         }
     }
 }

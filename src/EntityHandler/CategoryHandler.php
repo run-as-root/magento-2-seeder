@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\EntityHandler;
+namespace RunAsRoot\Seeder\EntityHandler;
 
-use DavidLambauer\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\Api\EntityHandlerInterface;
 use Magento\Catalog\Api\CategoryListInterface;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Api\Data\CategoryInterfaceFactory;

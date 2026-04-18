@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\EntityHandler;
+namespace RunAsRoot\Seeder\Test\Unit\EntityHandler;
 
-use DavidLambauer\Seeder\EntityHandler\OrderHandler;
+use RunAsRoot\Seeder\EntityHandler\OrderHandler;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
 use Magento\Quote\Api\CartItemRepositoryInterface;
@@ -16,6 +16,8 @@ use Magento\Quote\Api\Data\CartItemInterfaceFactory;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderSearchResultInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\TestCase;
 
 final class OrderHandlerTest extends TestCase
@@ -60,6 +62,7 @@ final class OrderHandlerTest extends TestCase
         $payment->method('setMethod')->willReturnSelf();
 
         $quote = $this->createMock(CartInterface::class);
+        $quote->method('setStoreId')->willReturnSelf();
         $quote->method('setCustomerEmail')->willReturnSelf();
         $quote->method('setCustomerIsGuest')->willReturnSelf();
         $quote->method('setCustomerFirstname')->willReturnSelf();
@@ -120,7 +123,15 @@ final class OrderHandlerTest extends TestCase
         ?CartItemRepositoryInterface $cartItemRepository = null,
         ?OrderRepositoryInterface $orderRepository = null,
         ?SearchCriteriaBuilder $searchCriteriaBuilder = null,
+        ?StoreManagerInterface $storeManager = null,
     ): OrderHandler {
+        if ($storeManager === null) {
+            $store = $this->createMock(StoreInterface::class);
+            $store->method('getId')->willReturn(1);
+            $storeManager = $this->createMock(StoreManagerInterface::class);
+            $storeManager->method('getDefaultStoreView')->willReturn($store);
+        }
+
         return new OrderHandler(
             $cartManagement ?? $this->createMock(CartManagementInterface::class),
             $cartRepository ?? $this->createMock(CartRepositoryInterface::class),
@@ -128,6 +139,7 @@ final class OrderHandlerTest extends TestCase
             $cartItemRepository ?? $this->createMock(CartItemRepositoryInterface::class),
             $orderRepository ?? $this->createMock(OrderRepositoryInterface::class),
             $searchCriteriaBuilder ?? $this->createMock(SearchCriteriaBuilder::class),
+            $storeManager,
         );
     }
 }

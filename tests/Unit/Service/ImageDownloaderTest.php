@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\Service;
+namespace RunAsRoot\Seeder\Test\Unit\Service;
 
-use DavidLambauer\Seeder\Service\ImageDownloader;
+use RunAsRoot\Seeder\Service\ImageDownloader;
 use PHPUnit\Framework\TestCase;
 
 final class ImageDownloaderTest extends TestCase

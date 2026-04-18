@@ -2,7 +2,7 @@
 
 ## Overview
 
-A Composer-installable Magento 2 module (`DavidLambauer\Seeder`) that brings Laravel-style database seeding to Magento 2. Developers define simple PHP files in a conventional directory and run them via `bin/magento` CLI to populate their local environment with test data.
+A Composer-installable Magento 2 module (`RunAsRoot\Seeder`) that brings Laravel-style database seeding to Magento 2. Developers define simple PHP files in a conventional directory and run them via `bin/magento` CLI to populate their local environment with test data.
 
 ## Goals
 
@@ -68,12 +68,12 @@ A PHP class implementing `SeederInterface` with full DI support:
 ```php
 <?php
 // dev/seeders/MassOrderSeeder.php
-use DavidLambauer\Seeder\Api\SeederInterface;
+use RunAsRoot\Seeder\Api\SeederInterface;
 
 class MassOrderSeeder implements SeederInterface
 {
     public function __construct(
-        private readonly \DavidLambauer\Seeder\Api\EntityHandlerInterface $orderHandler
+        private readonly \RunAsRoot\Seeder\Api\EntityHandlerInterface $orderHandler
     ) {}
 
     public function getType(): string { return 'order'; }
@@ -96,7 +96,7 @@ class MassOrderSeeder implements SeederInterface
 ### SeederInterface
 
 ```php
-namespace DavidLambauer\Seeder\Api;
+namespace RunAsRoot\Seeder\Api;
 
 interface SeederInterface
 {
@@ -109,7 +109,7 @@ interface SeederInterface
 ### EntityHandlerInterface
 
 ```php
-namespace DavidLambauer\Seeder\Api;
+namespace RunAsRoot\Seeder\Api;
 
 interface EntityHandlerInterface
 {
@@ -161,14 +161,14 @@ Done. 122 entities seeded.
 ### DI Configuration
 
 ```xml
-<type name="DavidLambauer\Seeder\Service\SeederRunner">
+<type name="RunAsRoot\Seeder\Service\SeederRunner">
     <arguments>
         <argument name="entityHandlers" xsi:type="array">
-            <item name="customer" xsi:type="object">DavidLambauer\Seeder\EntityHandler\CustomerHandler</item>
-            <item name="product" xsi:type="object">DavidLambauer\Seeder\EntityHandler\ProductHandler</item>
-            <item name="category" xsi:type="object">DavidLambauer\Seeder\EntityHandler\CategoryHandler</item>
-            <item name="order" xsi:type="object">DavidLambauer\Seeder\EntityHandler\OrderHandler</item>
-            <item name="cms" xsi:type="object">DavidLambauer\Seeder\EntityHandler\CmsHandler</item>
+            <item name="customer" xsi:type="object">RunAsRoot\Seeder\EntityHandler\CustomerHandler</item>
+            <item name="product" xsi:type="object">RunAsRoot\Seeder\EntityHandler\ProductHandler</item>
+            <item name="category" xsi:type="object">RunAsRoot\Seeder\EntityHandler\CategoryHandler</item>
+            <item name="order" xsi:type="object">RunAsRoot\Seeder\EntityHandler\OrderHandler</item>
+            <item name="cms" xsi:type="object">RunAsRoot\Seeder\EntityHandler\CmsHandler</item>
         </argument>
     </arguments>
 </type>

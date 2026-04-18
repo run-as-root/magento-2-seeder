@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\DataGenerator;
+namespace RunAsRoot\Seeder\Test\Unit\DataGenerator;
 
-use DavidLambauer\Seeder\DataGenerator\ProductDataGenerator;
-use DavidLambauer\Seeder\Service\GeneratedDataRegistry;
+use RunAsRoot\Seeder\DataGenerator\ProductDataGenerator;
+use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 use Faker\Factory;
 use PHPUnit\Framework\TestCase;
 

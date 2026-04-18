@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\DataGenerator;
+namespace RunAsRoot\Seeder\DataGenerator;
 
-use DavidLambauer\Seeder\Api\DataGeneratorInterface;
-use DavidLambauer\Seeder\Service\GeneratedDataRegistry;
+use RunAsRoot\Seeder\Api\DataGeneratorInterface;
+use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 use Faker\Generator;
 
 class CustomerDataGenerator implements DataGeneratorInterface
@@ -33,7 +33,7 @@ class CustomerDataGenerator implements DataGeneratorInterface
             'region_id' => $faker->numberBetween(1, 65),
             'postcode' => $faker->postcode(),
             'country_id' => 'US',
-            'telephone' => $faker->phoneNumber(),
+            'telephone' => $this->sanitizeTelephone($faker->phoneNumber()),
             'default_billing' => true,
             'default_shipping' => true,
         ];
@@ -51,6 +51,14 @@ class CustomerDataGenerator implements DataGeneratorInterface
     public function getDependencies(): array
     {
         return [];
+    }
+
+    private function sanitizeTelephone(string $raw): string
+    {
+        $cleaned = preg_replace('/[^0-9\-\(\) \+]/', '', $raw) ?? '';
+        $cleaned = trim($cleaned);
+
+        return $cleaned !== '' ? $cleaned : '555-0100';
     }
 
     public function getDependencyCount(string $dependencyType, int $selfCount): int

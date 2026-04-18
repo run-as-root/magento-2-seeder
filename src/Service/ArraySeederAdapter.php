@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Service;
+namespace RunAsRoot\Seeder\Service;
 
-use DavidLambauer\Seeder\Api\SeederInterface;
+use RunAsRoot\Seeder\Api\SeederInterface;
 
 class ArraySeederAdapter implements SeederInterface
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Api;
+namespace RunAsRoot\Seeder\Api;
 
 interface SeederInterface
 {

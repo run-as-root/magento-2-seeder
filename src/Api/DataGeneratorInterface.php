@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Api;
+namespace RunAsRoot\Seeder\Api;
 
-use DavidLambauer\Seeder\Service\GeneratedDataRegistry;
+use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 use Faker\Generator;
 
 interface DataGeneratorInterface

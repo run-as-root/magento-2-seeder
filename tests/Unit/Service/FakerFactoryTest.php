@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\Service;
+namespace RunAsRoot\Seeder\Test\Unit\Service;
 
-use DavidLambauer\Seeder\Service\FakerFactory;
+use RunAsRoot\Seeder\Service\FakerFactory;
 use Faker\Generator;
 use PHPUnit\Framework\TestCase;
 

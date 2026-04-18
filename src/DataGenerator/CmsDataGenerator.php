@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\DataGenerator;
+namespace RunAsRoot\Seeder\DataGenerator;
 
-use DavidLambauer\Seeder\Api\DataGeneratorInterface;
-use DavidLambauer\Seeder\Service\GeneratedDataRegistry;
+use RunAsRoot\Seeder\Api\DataGeneratorInterface;
+use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 use Faker\Generator;
 
 class CmsDataGenerator implements DataGeneratorInterface

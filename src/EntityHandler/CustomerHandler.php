@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\EntityHandler;
+namespace RunAsRoot\Seeder\EntityHandler;
 
-use DavidLambauer\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\Api\EntityHandlerInterface;
 use Magento\Customer\Api\AccountManagementInterface;
 use Magento\Customer\Api\AddressRepositoryInterface;
 use Magento\Customer\Api\CustomerRepositoryInterface;

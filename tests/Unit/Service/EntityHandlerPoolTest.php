@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\Service;
+namespace RunAsRoot\Seeder\Test\Unit\Service;
 
-use DavidLambauer\Seeder\Api\EntityHandlerInterface;
-use DavidLambauer\Seeder\Service\EntityHandlerPool;
+use RunAsRoot\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\Service\EntityHandlerPool;
 use PHPUnit\Framework\TestCase;
 
 final class EntityHandlerPoolTest extends TestCase

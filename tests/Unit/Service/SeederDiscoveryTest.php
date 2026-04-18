@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\Service;
+namespace RunAsRoot\Seeder\Test\Unit\Service;
 
-use DavidLambauer\Seeder\Api\EntityHandlerInterface;
-use DavidLambauer\Seeder\Service\EntityHandlerPool;
-use DavidLambauer\Seeder\Service\GenerateRunner;
-use DavidLambauer\Seeder\Service\SeederDiscovery;
+use RunAsRoot\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\Service\EntityHandlerPool;
+use RunAsRoot\Seeder\Service\GenerateRunner;
+use RunAsRoot\Seeder\Service\SeederDiscovery;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\ObjectManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -71,7 +71,7 @@ final class SeederDiscoveryTest extends TestCase
         file_put_contents(
             $this->tempDir . '/dev/seeders/' . $className . '.php',
             sprintf(
-                "<?php\nuse DavidLambauer\\Seeder\\Api\\SeederInterface;\n\n"
+                "<?php\nuse RunAsRoot\\Seeder\\Api\\SeederInterface;\n\n"
                 . "class %s implements SeederInterface {\n"
                 . "    public function getType(): string { return 'customer'; }\n"
                 . "    public function getOrder(): int { return 10; }\n"
@@ -81,7 +81,7 @@ final class SeederDiscoveryTest extends TestCase
             )
         );
 
-        $mockSeeder = $this->createMock(\DavidLambauer\Seeder\Api\SeederInterface::class);
+        $mockSeeder = $this->createMock(\RunAsRoot\Seeder\Api\SeederInterface::class);
         $mockSeeder->method('getType')->willReturn('customer');
 
         $objectManager = $this->createMock(ObjectManagerInterface::class);
@@ -111,7 +111,7 @@ final class SeederDiscoveryTest extends TestCase
         file_put_contents(
             $this->tempDir . '/dev/seeders/' . $shortName . '.php',
             sprintf(
-                "<?php\nnamespace SeederTest;\n\nuse DavidLambauer\\Seeder\\Api\\SeederInterface;\n\n"
+                "<?php\nnamespace SeederTest;\n\nuse RunAsRoot\\Seeder\\Api\\SeederInterface;\n\n"
                 . "class %s implements SeederInterface {\n"
                 . "    public function getType(): string { return 'product'; }\n"
                 . "    public function getOrder(): int { return 20; }\n"
@@ -121,7 +121,7 @@ final class SeederDiscoveryTest extends TestCase
             )
         );
 
-        $mockSeeder = $this->createMock(\DavidLambauer\Seeder\Api\SeederInterface::class);
+        $mockSeeder = $this->createMock(\RunAsRoot\Seeder\Api\SeederInterface::class);
         $mockSeeder->method('getType')->willReturn('product');
 
         $objectManager = $this->createMock(ObjectManagerInterface::class);

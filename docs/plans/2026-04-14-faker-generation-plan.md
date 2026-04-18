@@ -36,9 +36,9 @@ composer require fakerphp/faker:^1.23
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\Service;
+namespace RunAsRoot\Seeder\Test\Unit\Service;
 
-use DavidLambauer\Seeder\Service\FakerFactory;
+use RunAsRoot\Seeder\Service\FakerFactory;
 use Faker\Generator;
 use PHPUnit\Framework\TestCase;
 
@@ -88,7 +88,7 @@ final class FakerFactoryTest extends TestCase
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Service;
+namespace RunAsRoot\Seeder\Service;
 
 use Faker\Factory;
 use Faker\Generator;
@@ -131,9 +131,9 @@ git commit -m "feat: add fakerphp/faker dependency and FakerFactory service"
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\Service;
+namespace RunAsRoot\Seeder\Test\Unit\Service;
 
-use DavidLambauer\Seeder\Service\GeneratedDataRegistry;
+use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 use PHPUnit\Framework\TestCase;
 
 final class GeneratedDataRegistryTest extends TestCase
@@ -197,7 +197,7 @@ final class GeneratedDataRegistryTest extends TestCase
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Service;
+namespace RunAsRoot\Seeder\Service;
 
 class GeneratedDataRegistry
 {
@@ -258,9 +258,9 @@ git commit -m "feat: add GeneratedDataRegistry for cross-generator entity refere
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Api;
+namespace RunAsRoot\Seeder\Api;
 
-use DavidLambauer\Seeder\Service\GeneratedDataRegistry;
+use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 use Faker\Generator;
 
 interface DataGeneratorInterface
@@ -287,10 +287,10 @@ interface DataGeneratorInterface
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\Service;
+namespace RunAsRoot\Seeder\Test\Unit\Service;
 
-use DavidLambauer\Seeder\Api\DataGeneratorInterface;
-use DavidLambauer\Seeder\Service\DataGeneratorPool;
+use RunAsRoot\Seeder\Api\DataGeneratorInterface;
+use RunAsRoot\Seeder\Service\DataGeneratorPool;
 use PHPUnit\Framework\TestCase;
 
 final class DataGeneratorPoolTest extends TestCase
@@ -347,9 +347,9 @@ final class DataGeneratorPoolTest extends TestCase
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Service;
+namespace RunAsRoot\Seeder\Service;
 
-use DavidLambauer\Seeder\Api\DataGeneratorInterface;
+use RunAsRoot\Seeder\Api\DataGeneratorInterface;
 
 class DataGeneratorPool
 {
@@ -404,11 +404,11 @@ git commit -m "feat: add DataGeneratorInterface and DataGeneratorPool registry"
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\Service;
+namespace RunAsRoot\Seeder\Test\Unit\Service;
 
-use DavidLambauer\Seeder\Api\DataGeneratorInterface;
-use DavidLambauer\Seeder\Service\DataGeneratorPool;
-use DavidLambauer\Seeder\Service\DependencyResolver;
+use RunAsRoot\Seeder\Api\DataGeneratorInterface;
+use RunAsRoot\Seeder\Service\DataGeneratorPool;
+use RunAsRoot\Seeder\Service\DependencyResolver;
 use PHPUnit\Framework\TestCase;
 
 final class DependencyResolverTest extends TestCase
@@ -521,7 +521,7 @@ final class DependencyResolverTest extends TestCase
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Service;
+namespace RunAsRoot\Seeder\Service;
 
 class DependencyResolver
 {
@@ -596,7 +596,7 @@ git commit -m "feat: add DependencyResolver for smart auto-generation of entity 
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Service;
+namespace RunAsRoot\Seeder\Service;
 
 final class GenerateRunConfig
 {
@@ -619,17 +619,17 @@ final class GenerateRunConfig
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\Service;
+namespace RunAsRoot\Seeder\Test\Unit\Service;
 
-use DavidLambauer\Seeder\Api\DataGeneratorInterface;
-use DavidLambauer\Seeder\Api\EntityHandlerInterface;
-use DavidLambauer\Seeder\Service\DataGeneratorPool;
-use DavidLambauer\Seeder\Service\DependencyResolver;
-use DavidLambauer\Seeder\Service\EntityHandlerPool;
-use DavidLambauer\Seeder\Service\FakerFactory;
-use DavidLambauer\Seeder\Service\GeneratedDataRegistry;
-use DavidLambauer\Seeder\Service\GenerateRunConfig;
-use DavidLambauer\Seeder\Service\GenerateRunner;
+use RunAsRoot\Seeder\Api\DataGeneratorInterface;
+use RunAsRoot\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\Service\DataGeneratorPool;
+use RunAsRoot\Seeder\Service\DependencyResolver;
+use RunAsRoot\Seeder\Service\EntityHandlerPool;
+use RunAsRoot\Seeder\Service\FakerFactory;
+use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
+use RunAsRoot\Seeder\Service\GenerateRunConfig;
+use RunAsRoot\Seeder\Service\GenerateRunner;
 use Psr\Log\LoggerInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -775,7 +775,7 @@ final class GenerateRunnerTest extends TestCase
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Service;
+namespace RunAsRoot\Seeder\Service;
 
 use Psr\Log\LoggerInterface;
 
@@ -876,10 +876,10 @@ git commit -m "feat: add GenerateRunner to orchestrate Faker-powered entity gene
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\DataGenerator;
+namespace RunAsRoot\Seeder\Test\Unit\DataGenerator;
 
-use DavidLambauer\Seeder\DataGenerator\CategoryDataGenerator;
-use DavidLambauer\Seeder\Service\GeneratedDataRegistry;
+use RunAsRoot\Seeder\DataGenerator\CategoryDataGenerator;
+use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 use Faker\Factory;
 use PHPUnit\Framework\TestCase;
 
@@ -945,10 +945,10 @@ final class CategoryDataGeneratorTest extends TestCase
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\DataGenerator;
+namespace RunAsRoot\Seeder\DataGenerator;
 
-use DavidLambauer\Seeder\Api\DataGeneratorInterface;
-use DavidLambauer\Seeder\Service\GeneratedDataRegistry;
+use RunAsRoot\Seeder\Api\DataGeneratorInterface;
+use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 use Faker\Generator;
 
 class CategoryDataGenerator implements DataGeneratorInterface
@@ -1029,10 +1029,10 @@ git commit -m "feat: add CategoryDataGenerator with commerce category names and 
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\DataGenerator;
+namespace RunAsRoot\Seeder\Test\Unit\DataGenerator;
 
-use DavidLambauer\Seeder\DataGenerator\CustomerDataGenerator;
-use DavidLambauer\Seeder\Service\GeneratedDataRegistry;
+use RunAsRoot\Seeder\DataGenerator\CustomerDataGenerator;
+use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 use Faker\Factory;
 use PHPUnit\Framework\TestCase;
 
@@ -1101,10 +1101,10 @@ final class CustomerDataGeneratorTest extends TestCase
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\DataGenerator;
+namespace RunAsRoot\Seeder\DataGenerator;
 
-use DavidLambauer\Seeder\Api\DataGeneratorInterface;
-use DavidLambauer\Seeder\Service\GeneratedDataRegistry;
+use RunAsRoot\Seeder\Api\DataGeneratorInterface;
+use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 use Faker\Generator;
 
 class CustomerDataGenerator implements DataGeneratorInterface
@@ -1219,9 +1219,9 @@ git commit -m "feat: add CustomerDataGenerator with addresses and enhance Custom
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\Service;
+namespace RunAsRoot\Seeder\Test\Unit\Service;
 
-use DavidLambauer\Seeder\Service\ImageDownloader;
+use RunAsRoot\Seeder\Service\ImageDownloader;
 use PHPUnit\Framework\TestCase;
 
 final class ImageDownloaderTest extends TestCase
@@ -1264,7 +1264,7 @@ final class ImageDownloaderTest extends TestCase
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Service;
+namespace RunAsRoot\Seeder\Service;
 
 class ImageDownloader
 {
@@ -1307,10 +1307,10 @@ class ImageDownloader
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\DataGenerator;
+namespace RunAsRoot\Seeder\Test\Unit\DataGenerator;
 
-use DavidLambauer\Seeder\DataGenerator\ProductDataGenerator;
-use DavidLambauer\Seeder\Service\GeneratedDataRegistry;
+use RunAsRoot\Seeder\DataGenerator\ProductDataGenerator;
+use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 use Faker\Factory;
 use PHPUnit\Framework\TestCase;
 
@@ -1397,10 +1397,10 @@ final class ProductDataGeneratorTest extends TestCase
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\DataGenerator;
+namespace RunAsRoot\Seeder\DataGenerator;
 
-use DavidLambauer\Seeder\Api\DataGeneratorInterface;
-use DavidLambauer\Seeder\Service\GeneratedDataRegistry;
+use RunAsRoot\Seeder\Api\DataGeneratorInterface;
+use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 use Faker\Generator;
 
 class ProductDataGenerator implements DataGeneratorInterface
@@ -1493,10 +1493,10 @@ git commit -m "feat: add ProductDataGenerator with image download and enhance Pr
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\DataGenerator;
+namespace RunAsRoot\Seeder\Test\Unit\DataGenerator;
 
-use DavidLambauer\Seeder\DataGenerator\OrderDataGenerator;
-use DavidLambauer\Seeder\Service\GeneratedDataRegistry;
+use RunAsRoot\Seeder\DataGenerator\OrderDataGenerator;
+use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 use Faker\Factory;
 use PHPUnit\Framework\TestCase;
 
@@ -1570,10 +1570,10 @@ final class OrderDataGeneratorTest extends TestCase
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\DataGenerator;
+namespace RunAsRoot\Seeder\DataGenerator;
 
-use DavidLambauer\Seeder\Api\DataGeneratorInterface;
-use DavidLambauer\Seeder\Service\GeneratedDataRegistry;
+use RunAsRoot\Seeder\Api\DataGeneratorInterface;
+use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 use Faker\Generator;
 
 class OrderDataGenerator implements DataGeneratorInterface
@@ -1659,10 +1659,10 @@ git commit -m "feat: add OrderDataGenerator with customer/product dependency rat
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\DataGenerator;
+namespace RunAsRoot\Seeder\Test\Unit\DataGenerator;
 
-use DavidLambauer\Seeder\DataGenerator\CmsDataGenerator;
-use DavidLambauer\Seeder\Service\GeneratedDataRegistry;
+use RunAsRoot\Seeder\DataGenerator\CmsDataGenerator;
+use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 use Faker\Factory;
 use PHPUnit\Framework\TestCase;
 
@@ -1709,10 +1709,10 @@ final class CmsDataGeneratorTest extends TestCase
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\DataGenerator;
+namespace RunAsRoot\Seeder\DataGenerator;
 
-use DavidLambauer\Seeder\Api\DataGeneratorInterface;
-use DavidLambauer\Seeder\Service\GeneratedDataRegistry;
+use RunAsRoot\Seeder\Api\DataGeneratorInterface;
+use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 use Faker\Generator;
 
 class CmsDataGenerator implements DataGeneratorInterface
@@ -1882,14 +1882,14 @@ Add to `src/etc/di.xml`:
 
 ```xml
 <!-- Data Generator Pool -->
-<type name="DavidLambauer\Seeder\Service\DataGeneratorPool">
+<type name="RunAsRoot\Seeder\Service\DataGeneratorPool">
     <arguments>
         <argument name="generators" xsi:type="array">
-            <item name="customer" xsi:type="object">DavidLambauer\Seeder\DataGenerator\CustomerDataGenerator</item>
-            <item name="product" xsi:type="object">DavidLambauer\Seeder\DataGenerator\ProductDataGenerator</item>
-            <item name="category" xsi:type="object">DavidLambauer\Seeder\DataGenerator\CategoryDataGenerator</item>
-            <item name="order" xsi:type="object">DavidLambauer\Seeder\DataGenerator\OrderDataGenerator</item>
-            <item name="cms" xsi:type="object">DavidLambauer\Seeder\DataGenerator\CmsDataGenerator</item>
+            <item name="customer" xsi:type="object">RunAsRoot\Seeder\DataGenerator\CustomerDataGenerator</item>
+            <item name="product" xsi:type="object">RunAsRoot\Seeder\DataGenerator\ProductDataGenerator</item>
+            <item name="category" xsi:type="object">RunAsRoot\Seeder\DataGenerator\CategoryDataGenerator</item>
+            <item name="order" xsi:type="object">RunAsRoot\Seeder\DataGenerator\OrderDataGenerator</item>
+            <item name="cms" xsi:type="object">RunAsRoot\Seeder\DataGenerator\CmsDataGenerator</item>
         </argument>
     </arguments>
 </type>

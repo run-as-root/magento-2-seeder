@@ -2,18 +2,20 @@
 
 declare(strict_types=1);
 
-namespace DavidLambauer\Seeder\Test\Unit\EntityHandler;
+namespace RunAsRoot\Seeder\Test\Unit\EntityHandler;
 
-use DavidLambauer\Seeder\EntityHandler\ProductHandler;
-use DavidLambauer\Seeder\Service\ImageDownloader;
+use RunAsRoot\Seeder\EntityHandler\ProductHandler;
+use RunAsRoot\Seeder\Service\ImageDownloader;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\Data\ProductInterfaceFactory;
 use Magento\Catalog\Api\Data\ProductSearchResultsInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Model\Product;
 use Magento\CatalogInventory\Api\Data\StockItemInterface;
 use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
+use Magento\CatalogInventory\Model\Indexer\Stock\Processor as StockIndexerProcessor;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use PHPUnit\Framework\TestCase;
 
@@ -115,6 +117,109 @@ final class ProductHandlerTest extends TestCase
         ]);
     }
 
+    public function test_create_attaches_downloaded_image_to_media_gallery(): void
+    {
+        $product = $this->createMock(Product::class);
+        $product->method('setSku')->willReturnSelf();
+        $product->method('setName')->willReturnSelf();
+        $product->method('setPrice')->willReturnSelf();
+        $product->method('setAttributeSetId')->willReturnSelf();
+        $product->method('setStatus')->willReturnSelf();
+        $product->method('setVisibility')->willReturnSelf();
+        $product->method('setTypeId')->willReturnSelf();
+        $product->method('setWeight')->willReturnSelf();
+
+        $imageDownloader = $this->createMock(ImageDownloader::class);
+        $imageDownloader->expects($this->once())
+            ->method('download')
+            ->with('https://example.com/img.jpg', $this->stringContains('pub/media/catalog/product/import'))
+            ->willReturn('seed_abc.jpg');
+
+        $directoryList = $this->createMock(DirectoryList::class);
+        $directoryList->method('getRoot')->willReturn('/var/www/html');
+
+        $product->expects($this->once())
+            ->method('addImageToMediaGallery')
+            ->with(
+                '/var/www/html/pub/media/catalog/product/import/seed_abc.jpg',
+                ['image', 'small_image', 'thumbnail'],
+                true,
+                false
+            );
+
+        $factory = $this->createMock(ProductInterfaceFactory::class);
+        $factory->method('create')->willReturn($product);
+
+        $repository = $this->createMock(ProductRepositoryInterface::class);
+        $repository->expects($this->once())->method('save')->with($product);
+
+        $stockItem = $this->createMock(StockItemInterface::class);
+        $stockItem->method('setQty')->willReturnSelf();
+        $stockItem->method('setIsInStock')->willReturnSelf();
+
+        $stockRegistry = $this->createMock(StockRegistryInterface::class);
+        $stockRegistry->method('getStockItemBySku')->willReturn($stockItem);
+
+        $handler = $this->createHandler(
+            productFactory: $factory,
+            productRepository: $repository,
+            stockRegistry: $stockRegistry,
+            imageDownloader: $imageDownloader,
+            directoryList: $directoryList,
+        );
+
+        $handler->create([
+            'sku' => 'TEST-IMG',
+            'name' => 'Image Product',
+            'price' => 10.00,
+            'image_url' => 'https://example.com/img.jpg',
+        ]);
+    }
+
+    public function test_create_skips_image_attachment_when_download_fails(): void
+    {
+        $product = $this->createMock(Product::class);
+        $product->method('setSku')->willReturnSelf();
+        $product->method('setName')->willReturnSelf();
+        $product->method('setPrice')->willReturnSelf();
+        $product->method('setAttributeSetId')->willReturnSelf();
+        $product->method('setStatus')->willReturnSelf();
+        $product->method('setVisibility')->willReturnSelf();
+        $product->method('setTypeId')->willReturnSelf();
+        $product->method('setWeight')->willReturnSelf();
+        $product->expects($this->never())->method('addImageToMediaGallery');
+
+        $imageDownloader = $this->createMock(ImageDownloader::class);
+        $imageDownloader->method('download')->willReturn(null);
+
+        $directoryList = $this->createMock(DirectoryList::class);
+        $directoryList->method('getRoot')->willReturn('/var/www/html');
+
+        $factory = $this->createMock(ProductInterfaceFactory::class);
+        $factory->method('create')->willReturn($product);
+
+        $stockItem = $this->createMock(StockItemInterface::class);
+        $stockItem->method('setQty')->willReturnSelf();
+        $stockItem->method('setIsInStock')->willReturnSelf();
+
+        $stockRegistry = $this->createMock(StockRegistryInterface::class);
+        $stockRegistry->method('getStockItemBySku')->willReturn($stockItem);
+
+        $handler = $this->createHandler(
+            productFactory: $factory,
+            stockRegistry: $stockRegistry,
+            imageDownloader: $imageDownloader,
+            directoryList: $directoryList,
+        );
+
+        $handler->create([
+            'sku' => 'TEST-NOIMG',
+            'name' => 'No Image Product',
+            'price' => 10.00,
+            'image_url' => 'https://example.com/broken.jpg',
+        ]);
+    }
+
     public function test_clean_deletes_all_products(): void
     {
         $product = $this->createMock(ProductInterface::class);
@@ -148,6 +253,7 @@ final class ProductHandlerTest extends TestCase
         ?StockRegistryInterface $stockRegistry = null,
         ?ImageDownloader $imageDownloader = null,
         ?DirectoryList $directoryList = null,
+        ?StockIndexerProcessor $stockIndexerProcessor = null,
     ): ProductHandler {
         return new ProductHandler(
             $productFactory ?? $this->createMock(ProductInterfaceFactory::class),
@@ -156,6 +262,7 @@ final class ProductHandlerTest extends TestCase
             $stockRegistry ?? $this->createMock(StockRegistryInterface::class),
             $imageDownloader ?? $this->createMock(ImageDownloader::class),
             $directoryList ?? $this->createMock(DirectoryList::class),
+            $stockIndexerProcessor ?? $this->createMock(StockIndexerProcessor::class),
         );
     }
 }
