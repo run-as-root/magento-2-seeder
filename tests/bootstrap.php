@@ -30,6 +30,7 @@ if (!class_exists(\Magento\Framework\App\Filesystem\DirectoryList::class)) {
     eval('
         namespace Magento\Framework\App\Filesystem;
         class DirectoryList {
+            public const MEDIA = "media";
             public function getRoot(): string { return ""; }
             public function getPath(string $code): string { return ""; }
         }
@@ -951,6 +952,45 @@ if (!class_exists(\Magento\Catalog\Api\Data\ProductLinkInterfaceFactory::class))
             public function create(array $data = []): ProductLinkInterface {
                 throw new \RuntimeException("Stub: not implemented");
             }
+        }
+    ');
+}
+
+// Downloadable product stubs
+
+if (!interface_exists(\Magento\Downloadable\Api\Data\LinkInterface::class)) {
+    eval('
+        namespace Magento\Downloadable\Api\Data;
+        interface LinkInterface {
+            public function setTitle(string $title): self;
+            public function setPrice(float $price): self;
+            public function setIsShareable(int $isShareable): self;
+            public function setNumberOfDownloads(int $numberOfDownloads): self;
+            public function setSortOrder(int $sortOrder): self;
+            public function setLinkType(string $linkType): self;
+            public function setLinkFile(string $linkFile): self;
+            public function setSampleType(string $sampleType): self;
+            public function setSampleFile(string $sampleFile): self;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Downloadable\Api\Data\LinkInterfaceFactory::class)) {
+    eval('
+        namespace Magento\Downloadable\Api\Data;
+        class LinkInterfaceFactory {
+            public function create(array $data = []): LinkInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Downloadable\Api\LinkRepositoryInterface::class)) {
+    eval('
+        namespace Magento\Downloadable\Api;
+        interface LinkRepositoryInterface {
+            public function save(string $sku, \Magento\Downloadable\Api\Data\LinkInterface $link, bool $isGlobalScopeContent = true): int;
         }
     ');
 }
