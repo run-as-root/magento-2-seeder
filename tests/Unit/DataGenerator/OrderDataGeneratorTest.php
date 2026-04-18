@@ -65,4 +65,92 @@ final class OrderDataGeneratorTest extends TestCase
         $this->assertNotEmpty($data['items']);
         $this->assertSame('SEED-12345', $data['items'][0]['sku']);
     }
+
+    public function test_generate_includes_order_state_key(): void
+    {
+        $faker = Factory::create('en_US');
+        $faker->seed(42);
+        $registry = new GeneratedDataRegistry();
+        $registry->add('customer', [
+            'email' => 'john@test.com',
+            'firstname' => 'John',
+            'lastname' => 'Doe',
+            'addresses' => [[
+                'street' => ['123 Main St'],
+                'city' => 'New York',
+                'region_id' => 43,
+                'postcode' => '10001',
+                'country_id' => 'US',
+                'telephone' => '555-0100',
+            ]],
+        ]);
+        $registry->add('product', ['sku' => 'SEED-12345']);
+
+        $data = (new OrderDataGenerator())->generate($faker, $registry);
+
+        $this->assertArrayHasKey('order_state', $data);
+        $this->assertContains(
+            $data['order_state'],
+            ['new', 'processing', 'complete', 'canceled', 'holded', 'closed']
+        );
+    }
+
+    public function test_generate_respects_forced_state(): void
+    {
+        $faker = Factory::create('en_US');
+        $faker->seed(42);
+        $registry = new GeneratedDataRegistry();
+        $registry->add('customer', [
+            'email' => 'john@test.com',
+            'firstname' => 'John',
+            'lastname' => 'Doe',
+            'addresses' => [[
+                'street' => ['123 Main St'],
+                'city' => 'New York',
+                'region_id' => 43,
+                'postcode' => '10001',
+                'country_id' => 'US',
+                'telephone' => '555-0100',
+            ]],
+        ]);
+        $registry->add('product', ['sku' => 'SEED-12345']);
+
+        $generator = new OrderDataGenerator();
+        $generator->setForcedSubtype('canceled');
+
+        for ($i = 0; $i < 10; $i++) {
+            $data = $generator->generate($faker, $registry);
+            $this->assertSame('canceled', $data['order_state']);
+        }
+    }
+
+    public function test_generate_weighted_pick_yields_multiple_states_over_many_iterations(): void
+    {
+        $faker = Factory::create('en_US');
+        $faker->seed(42);
+        $registry = new GeneratedDataRegistry();
+        $registry->add('customer', [
+            'email' => 'john@test.com',
+            'firstname' => 'John',
+            'lastname' => 'Doe',
+            'addresses' => [[
+                'street' => ['123 Main St'],
+                'city' => 'New York',
+                'region_id' => 43,
+                'postcode' => '10001',
+                'country_id' => 'US',
+                'telephone' => '555-0100',
+            ]],
+        ]);
+        $registry->add('product', ['sku' => 'SEED-12345']);
+
+        $generator = new OrderDataGenerator();
+        $observed = [];
+        for ($i = 0; $i < 300; $i++) {
+            $data = $generator->generate($faker, $registry);
+            $observed[$data['order_state']] = true;
+        }
+
+        $this->assertGreaterThanOrEqual(3, count($observed));
+    }
 }
