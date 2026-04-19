@@ -38,4 +38,27 @@ final class SeedBuilderTest extends TestCase
 
         $this->assertSame([42], $builder->create());
     }
+
+    public function test_count_creates_n_entities_and_returns_all_ids(): void
+    {
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $handler->expects($this->exactly(3))
+            ->method('create')
+            ->willReturnOnConsecutiveCalls(1, 2, 3);
+
+        $generator = $this->createMock(DataGeneratorInterface::class);
+        $generator->expects($this->exactly(3))
+            ->method('generate')
+            ->willReturn(['k' => 'v']);
+
+        $builder = new SeedBuilder(
+            'customer',
+            new EntityHandlerPool(['customer' => $handler]),
+            new DataGeneratorPool(['customer' => $generator]),
+            new FakerFactory(),
+            new GeneratedDataRegistry(),
+        );
+
+        $this->assertSame([1, 2, 3], $builder->count(3)->create());
+    }
 }

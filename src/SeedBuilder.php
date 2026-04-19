@@ -22,6 +22,12 @@ final class SeedBuilder
     ) {
     }
 
+    public function count(int $n): self
+    {
+        $this->count = $n;
+        return $this;
+    }
+
     /** @return int[] created ids */
     public function create(): array
     {
