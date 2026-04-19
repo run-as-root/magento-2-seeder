@@ -64,10 +64,19 @@ final class SeedBuilder
         $effectiveSubtype = $this->subtype ?? $dottedSubtype;
 
         $handler = $this->handlers->get($baseType);
-        $generator = $this->generators->get($baseType);
+        $hasGenerator = $this->generators->has($baseType);
+
+        if (!$hasGenerator && $this->with === [] && $this->using === null) {
+            throw new \RuntimeException(
+                "No data generator for type \"{$baseType}\"; pass data via ->with(...)"
+            );
+        }
+
+        $generator = $hasGenerator ? $this->generators->get($baseType) : null;
         $faker = $this->fakerFactory->create();
 
-        $subtypeAware = $effectiveSubtype !== null && $generator instanceof SubtypeAwareInterface;
+        $subtypeAware = $effectiveSubtype !== null
+            && $generator instanceof SubtypeAwareInterface;
         if ($subtypeAware) {
             $generator->setForcedSubtype($effectiveSubtype);
         }
@@ -75,7 +84,9 @@ final class SeedBuilder
         try {
             $ids = [];
             for ($i = 0; $i < $this->count; $i++) {
-                $data = $generator->generate($faker, $this->registry);
+                $data = $generator !== null
+                    ? $generator->generate($faker, $this->registry)
+                    : [];
                 $data = array_replace($data, $this->with);
                 if ($this->using !== null) {
                     $data = array_replace($data, ($this->using)($i, $faker));

@@ -201,4 +201,41 @@ final class SeedBuilderTest extends TestCase
 
         $this->assertNull($generator->forced, 'subtype must be cleared even when handler throws');
     }
+
+    public function test_create_with_only_with_data_and_no_generator_writes_raw(): void
+    {
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $handler->expects($this->once())
+            ->method('create')
+            ->with(['email' => 'raw@example.com'])
+            ->willReturn(9);
+
+        $builder = new SeedBuilder(
+            'customer',
+            new EntityHandlerPool(['customer' => $handler]),
+            new DataGeneratorPool([]), // no generator registered
+            new FakerFactory(),
+            new GeneratedDataRegistry(),
+        );
+
+        $this->assertSame([9], $builder->with(['email' => 'raw@example.com'])->create());
+    }
+
+    public function test_create_without_generator_and_without_with_throws(): void
+    {
+        $handler = $this->createMock(EntityHandlerInterface::class);
+
+        $builder = new SeedBuilder(
+            'customer',
+            new EntityHandlerPool(['customer' => $handler]),
+            new DataGeneratorPool([]),
+            new FakerFactory(),
+            new GeneratedDataRegistry(),
+        );
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('No data generator for type "customer"');
+
+        $builder->create();
+    }
 }
