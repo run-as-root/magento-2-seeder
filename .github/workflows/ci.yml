@@ -7,52 +7,22 @@ on:
     branches: [main]
 
 jobs:
-  test:
-    name: PHPUnit (PHP ${{ matrix.php }})
+  compute_matrix:
+    name: Compute Magento matrix
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        php: ['8.1', '8.2', '8.3']
-
+    outputs:
+      matrix: ${{ steps.supported-version.outputs.matrix }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - id: supported-version
+        uses: graycoreio/github-actions-magento2/supported-version@main
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php }}
-          coverage: none
-          tools: composer:v2
-
-      - name: Cache Composer dependencies
-        uses: actions/cache@v4
-        with:
-          path: vendor
-          key: composer-${{ matrix.php }}-mageos-${{ hashFiles('composer.json') }}
-          restore-keys: composer-${{ matrix.php }}-mageos-
-
-      - name: Strip magento/* deps from composer.json
-        # Tests stub every Magento class via tests/bootstrap.php, so composer does
-        # not need to resolve magento/framework et al. They are only declared so
-        # the module behaves correctly once dropped into a real Magento project
-        # (where Magento provides those packages itself). Removing them here keeps
-        # CI self-contained without needing a Magento installation.
-        run: |
-          php -r '
-            $c = json_decode(file_get_contents("composer.json"), true);
-            foreach (array_keys($c["require"]) as $pkg) {
-              if (str_starts_with($pkg, "magento/")) { unset($c["require"][$pkg]); }
-            }
-            file_put_contents("composer.json", json_encode($c, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
-          '
-
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
-
-      - name: Run PHPUnit
-        run: vendor/bin/phpunit --colors=always
+  check-extension:
+    name: MageCheck
+    needs: compute_matrix
+    uses: graycoreio/github-actions-magento2/.github/workflows/check-extension.yaml@main
+    with:
+      matrix: ${{ needs.compute_matrix.outputs.matrix }}
 
   phpstan:
     name: PHPStan
@@ -64,18 +34,11 @@ jobs:
           php-version: '8.3'
           coverage: none
           tools: composer:v2
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-phpstan-${{ hashFiles('composer.json') }}
+          restore-keys: composer-phpstan-
       - run: composer install --prefer-dist --no-interaction --no-progress
       - run: vendor/bin/phpstan analyse --no-progress
-
-  phpcs:
-    name: Magento Coding Standard
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          coverage: none
-          tools: composer:v2
-      - run: composer install --prefer-dist --no-interaction --no-progress
-      - run: vendor/bin/phpcs
