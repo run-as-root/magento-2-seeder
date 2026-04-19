@@ -40,7 +40,17 @@ bin/magento db:seed --fresh --only=customer,product
 
 ## Seeder Formats
 
-### Array-Based (simple)
+Seeder files live in `dev/seeders/` and must end in `Seeder.<ext>`. Three formats are supported:
+
+| Format | Extension         | Use when                                            |
+|--------|-------------------|-----------------------------------------------------|
+| PHP    | `.php`            | Array or class with loops / Faker / conditionals    |
+| JSON   | `.json`           | Machine-generated fixtures or cross-language tools  |
+| YAML   | `.yaml` / `.yml`  | Human-readable fixtures                             |
+
+All three share the same payload shape: `type`, `data` (or `count`), and optional `order`/`locale`/`seed`.
+
+### Array-Based (PHP)
 
 Create a PHP file ending in `Seeder.php` that returns an array with `type` and `data`:
 
@@ -55,6 +65,37 @@ return [
     ],
 ];
 ```
+
+### JSON
+
+```json
+// dev/seeders/CustomerSeeder.json
+{
+    "type": "customer",
+    "data": [
+        {"email": "john@test.com", "firstname": "John", "lastname": "Doe", "password": "Test1234!"},
+        {"email": "jane@test.com", "firstname": "Jane", "lastname": "Doe", "password": "Test1234!"}
+    ]
+}
+```
+
+### YAML
+
+```yaml
+# dev/seeders/CustomerSeeder.yaml
+type: customer
+data:
+  - email: john@test.com
+    firstname: John
+    lastname: Doe
+    password: Test1234!
+  - email: jane@test.com
+    firstname: Jane
+    lastname: Doe
+    password: Test1234!
+```
+
+Invalid JSON/YAML files are logged to `var/log/` and skipped; the rest of the run continues.
 
 ### Class-Based (powerful)
 
@@ -156,6 +197,12 @@ bin/magento db:seed --generate=product:50 --seed=42
 # Combine with --fresh to wipe and regenerate
 bin/magento db:seed --generate=order:500 --fresh
 ```
+
+### Progress bar
+
+When a resolved count for any type is **10 or more**, the command renders a per-type
+Symfony Console progress bar so long runs show live progress. Smaller counts keep the
+compact `Generated N type(s)... done` output. Nothing to configure.
 
 ### Smart Dependency Resolution
 

@@ -142,6 +142,134 @@ final class SeederDiscoveryTest extends TestCase
         $this->assertSame('product', $seeders[0]->getType());
     }
 
+    public function test_discovers_json_seeder_files(): void
+    {
+        file_put_contents(
+            $this->tempDir . '/dev/seeders/CustomerSeeder.json',
+            json_encode([
+                'type' => 'customer',
+                'data' => [['email' => 'json@test.com']],
+            ]) ?: ''
+        );
+
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $pool = new EntityHandlerPool(['customer' => $handler]);
+
+        $discovery = new SeederDiscovery(
+            $this->createDirectoryListMock($this->tempDir),
+            $this->createMock(ObjectManagerInterface::class),
+            $pool,
+            $this->createMock(GenerateRunner::class),
+        );
+
+        $seeders = $discovery->discover();
+
+        $this->assertCount(1, $seeders);
+        $this->assertSame('customer', $seeders[0]->getType());
+    }
+
+    public function test_discovers_yaml_seeder_files(): void
+    {
+        file_put_contents(
+            $this->tempDir . '/dev/seeders/CustomerSeeder.yaml',
+            "type: customer\ndata:\n  - email: yaml@test.com\n"
+        );
+
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $pool = new EntityHandlerPool(['customer' => $handler]);
+
+        $discovery = new SeederDiscovery(
+            $this->createDirectoryListMock($this->tempDir),
+            $this->createMock(ObjectManagerInterface::class),
+            $pool,
+            $this->createMock(GenerateRunner::class),
+        );
+
+        $seeders = $discovery->discover();
+
+        $this->assertCount(1, $seeders);
+        $this->assertSame('customer', $seeders[0]->getType());
+    }
+
+    public function test_discovers_yml_seeder_files(): void
+    {
+        file_put_contents(
+            $this->tempDir . '/dev/seeders/CustomerSeeder.yml',
+            "type: customer\ndata:\n  - email: yml@test.com\n"
+        );
+
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $pool = new EntityHandlerPool(['customer' => $handler]);
+
+        $discovery = new SeederDiscovery(
+            $this->createDirectoryListMock($this->tempDir),
+            $this->createMock(ObjectManagerInterface::class),
+            $pool,
+            $this->createMock(GenerateRunner::class),
+        );
+
+        $seeders = $discovery->discover();
+
+        $this->assertCount(1, $seeders);
+        $this->assertSame('customer', $seeders[0]->getType());
+    }
+
+    public function test_discovers_mixed_format_seeders_together(): void
+    {
+        file_put_contents(
+            $this->tempDir . '/dev/seeders/PhpArraySeeder.php',
+            "<?php\nreturn ['type' => 'customer', 'data' => []];"
+        );
+        file_put_contents(
+            $this->tempDir . '/dev/seeders/JsonSeeder.json',
+            json_encode(['type' => 'product', 'data' => []]) ?: ''
+        );
+        file_put_contents(
+            $this->tempDir . '/dev/seeders/YamlSeeder.yaml',
+            "type: category\ndata: []\n"
+        );
+
+        $handlerPool = new EntityHandlerPool([
+            'customer' => $this->createMock(EntityHandlerInterface::class),
+            'product' => $this->createMock(EntityHandlerInterface::class),
+            'category' => $this->createMock(EntityHandlerInterface::class),
+        ]);
+
+        $discovery = new SeederDiscovery(
+            $this->createDirectoryListMock($this->tempDir),
+            $this->createMock(ObjectManagerInterface::class),
+            $handlerPool,
+            $this->createMock(GenerateRunner::class),
+        );
+
+        $types = array_map(static fn ($s) => $s->getType(), $discovery->discover());
+        sort($types);
+
+        $this->assertSame(['category', 'customer', 'product'], $types);
+    }
+
+    public function test_skips_invalid_json_and_logs_warning(): void
+    {
+        file_put_contents(
+            $this->tempDir . '/dev/seeders/BrokenSeeder.json',
+            '{not valid json'
+        );
+
+        $logger = $this->createMock(\Psr\Log\LoggerInterface::class);
+        $logger->expects($this->once())->method('warning');
+
+        $discovery = new SeederDiscovery(
+            $this->createDirectoryListMock($this->tempDir),
+            $this->createMock(ObjectManagerInterface::class),
+            new EntityHandlerPool([]),
+            $this->createMock(GenerateRunner::class),
+            null,
+            $logger,
+        );
+
+        $this->assertSame([], $discovery->discover());
+    }
+
     public function test_ignores_non_seeder_php_files(): void
     {
         file_put_contents(

@@ -327,6 +327,82 @@ final class GenerateRunnerTest extends TestCase
         $runner->run($config);
     }
 
+    public function test_runner_invokes_progress_callback(): void
+    {
+        $generator = $this->createMock(DataGeneratorInterface::class);
+        $generator->method('getType')->willReturn('customer');
+        $generator->method('getOrder')->willReturn(30);
+        $generator->method('getDependencies')->willReturn([]);
+        $generator->method('generate')->willReturn(['email' => 'a@test.com']);
+
+        $handler = $this->createMock(EntityHandlerInterface::class);
+
+        $genPool = new DataGeneratorPool(['customer' => $generator]);
+        $handlerPool = new EntityHandlerPool(['customer' => $handler]);
+        $resolver = new DependencyResolver($genPool);
+
+        $runner = new GenerateRunner(
+            $genPool,
+            $handlerPool,
+            $resolver,
+            new FakerFactory(),
+            new GeneratedDataRegistry(),
+            $this->createMock(LoggerInterface::class),
+        );
+
+        $calls = [];
+        $runner->run(
+            new GenerateRunConfig(counts: ['customer' => 3]),
+            function (string $type, int $done, int $total) use (&$calls): void {
+                $calls[] = [$type, $done, $total];
+            }
+        );
+
+        $this->assertSame(
+            [['customer', 1, 3], ['customer', 2, 3], ['customer', 3, 3]],
+            $calls
+        );
+    }
+
+    public function test_runner_invokes_progress_callback_on_failed_iterations(): void
+    {
+        $generator = $this->createMock(DataGeneratorInterface::class);
+        $generator->method('getType')->willReturn('customer');
+        $generator->method('getOrder')->willReturn(30);
+        $generator->method('getDependencies')->willReturn([]);
+        $generator->method('generate')->willReturn(['email' => 'a@test.com']);
+
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $handler->method('create')->willThrowException(new \RuntimeException('boom'));
+
+        $genPool = new DataGeneratorPool(['customer' => $generator]);
+        $handlerPool = new EntityHandlerPool(['customer' => $handler]);
+        $resolver = new DependencyResolver($genPool);
+
+        $runner = new GenerateRunner(
+            $genPool,
+            $handlerPool,
+            $resolver,
+            new FakerFactory(),
+            new GeneratedDataRegistry(),
+            $this->createMock(LoggerInterface::class),
+        );
+
+        $calls = [];
+        $runner->run(
+            new GenerateRunConfig(counts: ['customer' => 2]),
+            function (string $type, int $done, int $total) use (&$calls): void {
+                $calls[] = [$type, $done, $total];
+            }
+        );
+
+        $this->assertSame(
+            [['customer', 1, 2], ['customer', 2, 2]],
+            $calls,
+            'Progress callback must be invoked after every iteration, including failures'
+        );
+    }
+
     public function test_runner_skips_setter_on_non_subtype_aware_generator(): void
     {
         $generator = $this->createMock(DataGeneratorInterface::class);

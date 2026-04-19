@@ -19,8 +19,12 @@ class GenerateRunner
     ) {
     }
 
-    /** @return array<array{type: string, success: bool, count: int, failed: int, error: ?string}> */
-    public function run(GenerateRunConfig $config): array
+    /**
+     * @param callable(string, int, int): void|null $onProgress Invoked after each iteration with
+     *                                                          ($type, $done, $total).
+     * @return array<array{type: string, success: bool, count: int, failed: int, error: ?string}>
+     */
+    public function run(GenerateRunConfig $config, ?callable $onProgress = null): array
     {
         $this->registry->reset();
 
@@ -33,15 +37,23 @@ class GenerateRunner
 
         $results = [];
         foreach ($resolvedCounts as $type => $count) {
-            $results[] = $this->generateType($type, $count, $faker, $config->stopOnError);
+            $results[] = $this->generateType($type, $count, $faker, $config->stopOnError, $onProgress);
         }
 
         return $results;
     }
 
-    /** @return array{type: string, success: bool, count: int, failed: int, error: ?string} */
-    private function generateType(string $type, int $count, \Faker\Generator $faker, bool $stopOnError): array
-    {
+    /**
+     * @param callable(string, int, int): void|null $onProgress
+     * @return array{type: string, success: bool, count: int, failed: int, error: ?string}
+     */
+    private function generateType(
+        string $type,
+        int $count,
+        \Faker\Generator $faker,
+        bool $stopOnError,
+        ?callable $onProgress = null
+    ): array {
         $parts = explode('.', $type, 2);
         $baseType = $parts[0];
         $subtype = $parts[1] ?? null;
@@ -74,6 +86,10 @@ class GenerateRunner
                     ]);
 
                     if ($stopOnError) {
+                        if ($onProgress !== null) {
+                            $onProgress($type, $created + $failed, $count);
+                        }
+
                         return [
                             'type' => $type,
                             'success' => false,
@@ -82,6 +98,10 @@ class GenerateRunner
                             'error' => $lastError,
                         ];
                     }
+                }
+
+                if ($onProgress !== null) {
+                    $onProgress($type, $created + $failed, $count);
                 }
             }
         } finally {

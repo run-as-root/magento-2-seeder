@@ -12,6 +12,7 @@ use Magento\Framework\App\Area;
 use Magento\Framework\App\State;
 use Magento\Framework\Exception\LocalizedException;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -146,7 +147,39 @@ class SeedCommand extends Command
 
         $output->writeln(sprintf('<comment>Generating with locale: %s</comment>', $config->locale));
 
-        $results = $this->generateRunner->run($config);
+        $progressBar = null;
+        $currentType = null;
+        $onProgress = function (string $type, int $done, int $total) use (
+            &$progressBar,
+            &$currentType,
+            $output
+        ): void {
+            if ($total < 10) {
+                return;
+            }
+
+            if ($currentType !== $type) {
+                if ($progressBar !== null) {
+                    $progressBar->finish();
+                    $output->writeln('');
+                }
+
+                $currentType = $type;
+                $progressBar = new ProgressBar($output, $total);
+                $progressBar->setFormat('  %message% %current%/%max% [%bar%] %percent:3s%%');
+                $progressBar->setMessage(sprintf('Generating %s', $type));
+                $progressBar->start();
+            }
+
+            $progressBar->setProgress($done);
+        };
+
+        $results = $this->generateRunner->run($config, $onProgress);
+
+        if ($progressBar !== null) {
+            $progressBar->finish();
+            $output->writeln('');
+        }
 
         $hasError = false;
         foreach ($results as $result) {
