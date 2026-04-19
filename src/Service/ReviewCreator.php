@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace RunAsRoot\Seeder\Service;
 
+use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Review\Model\RatingFactory;
 use Magento\Review\Model\Review;
 use Magento\Review\Model\ReviewFactory;
@@ -15,6 +17,7 @@ class ReviewCreator
         private readonly ReviewFactory $reviewFactory,
         private readonly RatingFactory $ratingFactory,
         private readonly LoggerInterface $logger,
+        private readonly ResourceConnection $resource,
     ) {
     }
 
@@ -72,5 +75,42 @@ class ReviewCreator
                 $e->getMessage()
             ));
         }
+    }
+
+    /**
+     * Delete all reviews attached to products whose SKU matches the seed prefix (SEED-%).
+     * Cascading FKs remove review_detail + rating_option_vote rows.
+     */
+    public function cleanSeedReviews(): void
+    {
+        try {
+            $connection = $this->resource->getConnection();
+            $reviewTable = $this->resource->getTableName('review');
+            $productTable = $this->resource->getTableName('catalog_product_entity');
+
+            $select = $connection->select()
+                ->from(['r' => $reviewTable], 'review_id')
+                ->join(['p' => $productTable], 'r.entity_pk_value = p.entity_id', [])
+                ->where('p.sku LIKE ?', 'SEED-%')
+                ->where('r.entity_id = ?', $this->getProductReviewEntityId($connection));
+
+            $ids = $connection->fetchCol($select);
+            if ($ids === []) {
+                return;
+            }
+
+            $connection->delete($reviewTable, ['review_id IN (?)' => $ids]);
+        } catch (\Throwable $e) {
+            $this->logger->warning('ReviewCreator: failed to clean seed reviews: ' . $e->getMessage());
+        }
+    }
+
+    private function getProductReviewEntityId(AdapterInterface $connection): int
+    {
+        $select = $connection->select()
+            ->from($this->resource->getTableName('review_entity'), 'entity_id')
+            ->where('entity_code = ?', 'product');
+
+        return (int) $connection->fetchOne($select);
     }
 }

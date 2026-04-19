@@ -249,6 +249,50 @@ final class ProductHandlerTest extends TestCase
         $handler->clean();
     }
 
+    public function test_clean_calls_review_creator_clean_seed_reviews_before_deleting_products(): void
+    {
+        $product = $this->createMock(ProductInterface::class);
+        $product->method('getSku')->willReturn('SEED-001');
+
+        $searchResults = $this->createMock(ProductSearchResultsInterface::class);
+        $searchResults->method('getItems')->willReturn([$product]);
+
+        $searchCriteria = $this->createMock(SearchCriteriaInterface::class);
+
+        $searchCriteriaBuilder = $this->createMock(SearchCriteriaBuilder::class);
+        $searchCriteriaBuilder->method('setPageSize')->willReturnSelf();
+        $searchCriteriaBuilder->method('create')->willReturn($searchCriteria);
+
+        $callOrder = [];
+
+        $reviewCreator = $this->createMock(ReviewCreator::class);
+        $reviewCreator->expects($this->once())
+            ->method('cleanSeedReviews')
+            ->willReturnCallback(function () use (&$callOrder): void {
+                $callOrder[] = 'cleanSeedReviews';
+            });
+
+        $repository = $this->createMock(ProductRepositoryInterface::class);
+        $repository->method('getList')->willReturn($searchResults);
+        $repository->expects($this->once())
+            ->method('deleteById')
+            ->with('SEED-001')
+            ->willReturnCallback(function () use (&$callOrder): bool {
+                $callOrder[] = 'deleteById';
+                return true;
+            });
+
+        $handler = $this->createHandler(
+            productRepository: $repository,
+            searchCriteriaBuilder: $searchCriteriaBuilder,
+            reviewCreator: $reviewCreator,
+        );
+
+        $handler->clean();
+
+        $this->assertSame(['cleanSeedReviews', 'deleteById'], $callOrder);
+    }
+
     public function test_create_delegates_subtype_work_to_builder(): void
     {
         $product = $this->createMock(Product::class);

@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace RunAsRoot\Seeder\Test\Unit\Service;
 
 use RunAsRoot\Seeder\Service\ReviewCreator;
+use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\DB\Adapter\AdapterInterface;
+use Magento\Framework\DB\Select;
 use Magento\Review\Model\Rating;
 use Magento\Review\Model\RatingFactory;
 use Magento\Review\Model\Review;
@@ -37,7 +40,7 @@ final class ReviewCreatorTest extends TestCase
 
         $logger = $this->createMock(LoggerInterface::class);
 
-        $creator = new ReviewCreator($reviewFactory, $ratingFactory, $logger);
+        $creator = new ReviewCreator($reviewFactory, $ratingFactory, $logger, $this->createMock(ResourceConnection::class));
         $creator->create(42, [
             'nickname' => 'happycat',
             'title'    => 'Great product',
@@ -72,7 +75,7 @@ final class ReviewCreatorTest extends TestCase
 
         $logger = $this->createMock(LoggerInterface::class);
 
-        $creator = new ReviewCreator($reviewFactory, $ratingFactory, $logger);
+        $creator = new ReviewCreator($reviewFactory, $ratingFactory, $logger, $this->createMock(ResourceConnection::class));
         $creator->create(1, [
             'nickname' => 'n',
             'title'    => 't',
@@ -123,7 +126,7 @@ final class ReviewCreatorTest extends TestCase
 
         $logger = $this->createMock(LoggerInterface::class);
 
-        $creator = new ReviewCreator($reviewFactory, $ratingFactory, $logger);
+        $creator = new ReviewCreator($reviewFactory, $ratingFactory, $logger, $this->createMock(ResourceConnection::class));
         $creator->create(123, [
             'nickname' => 'n',
             'title'    => 't',
@@ -145,7 +148,7 @@ final class ReviewCreatorTest extends TestCase
 
         $logger = $this->createMock(LoggerInterface::class);
 
-        $creator = new ReviewCreator($reviewFactory, $ratingFactory, $logger);
+        $creator = new ReviewCreator($reviewFactory, $ratingFactory, $logger, $this->createMock(ResourceConnection::class));
         $creator->create(1, [
             'nickname' => 'n',
             'title'    => 't',
@@ -184,7 +187,7 @@ final class ReviewCreatorTest extends TestCase
 
         $logger = $this->createMock(LoggerInterface::class);
 
-        $creator = new ReviewCreator($reviewFactory, $ratingFactory, $logger);
+        $creator = new ReviewCreator($reviewFactory, $ratingFactory, $logger, $this->createMock(ResourceConnection::class));
         $creator->create(1, [
             'nickname' => 'n',
             'title'    => 't',
@@ -216,7 +219,7 @@ final class ReviewCreatorTest extends TestCase
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->once())->method('warning');
 
-        $creator = new ReviewCreator($reviewFactory, $ratingFactory, $logger);
+        $creator = new ReviewCreator($reviewFactory, $ratingFactory, $logger, $this->createMock(ResourceConnection::class));
 
         // Must not re-throw.
         $creator->create(1, [
@@ -225,6 +228,83 @@ final class ReviewCreatorTest extends TestCase
             'detail'   => 'd',
             'rating'   => 3,
         ]);
+    }
+
+    public function test_clean_seed_reviews_deletes_reviews_for_seed_products(): void
+    {
+        $select = $this->createMock(Select::class);
+        $select->method('from')->willReturnSelf();
+        $select->method('join')->willReturnSelf();
+        $select->method('where')->willReturnSelf();
+
+        $connection = $this->createMock(AdapterInterface::class);
+        $connection->method('select')->willReturn($select);
+        // First fetchOne: entity id for product review; fetchCol: review ids
+        $connection->method('fetchOne')->willReturn(1);
+        $connection->method('fetchCol')->willReturn([5, 7, 9]);
+        $connection->expects($this->once())
+            ->method('delete')
+            ->with('review', ['review_id IN (?)' => [5, 7, 9]])
+            ->willReturn(3);
+
+        $resource = $this->createMock(ResourceConnection::class);
+        $resource->method('getConnection')->willReturn($connection);
+        $resource->method('getTableName')->willReturnArgument(0);
+
+        $creator = new ReviewCreator(
+            $this->createMock(ReviewFactory::class),
+            $this->createMock(RatingFactory::class),
+            $this->createMock(LoggerInterface::class),
+            $resource,
+        );
+
+        $creator->cleanSeedReviews();
+    }
+
+    public function test_clean_seed_reviews_is_noop_when_no_matching_reviews(): void
+    {
+        $select = $this->createMock(Select::class);
+        $select->method('from')->willReturnSelf();
+        $select->method('join')->willReturnSelf();
+        $select->method('where')->willReturnSelf();
+
+        $connection = $this->createMock(AdapterInterface::class);
+        $connection->method('select')->willReturn($select);
+        $connection->method('fetchOne')->willReturn(1);
+        $connection->method('fetchCol')->willReturn([]);
+        $connection->expects($this->never())->method('delete');
+
+        $resource = $this->createMock(ResourceConnection::class);
+        $resource->method('getConnection')->willReturn($connection);
+        $resource->method('getTableName')->willReturnArgument(0);
+
+        $creator = new ReviewCreator(
+            $this->createMock(ReviewFactory::class),
+            $this->createMock(RatingFactory::class),
+            $this->createMock(LoggerInterface::class),
+            $resource,
+        );
+
+        $creator->cleanSeedReviews();
+    }
+
+    public function test_clean_seed_reviews_swallows_exceptions_as_warning(): void
+    {
+        $resource = $this->createMock(ResourceConnection::class);
+        $resource->method('getConnection')->willThrowException(new \RuntimeException('db down'));
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())->method('warning');
+
+        $creator = new ReviewCreator(
+            $this->createMock(ReviewFactory::class),
+            $this->createMock(RatingFactory::class),
+            $logger,
+            $resource,
+        );
+
+        // Must not re-throw.
+        $creator->cleanSeedReviews();
     }
 
     private function buildPermissiveReview(int $reviewId): Review
