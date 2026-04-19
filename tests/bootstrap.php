@@ -1139,4 +1139,64 @@ if (!interface_exists(\Magento\Sales\Api\CreditmemoManagementInterface::class)) 
     ');
 }
 
+if (!class_exists(\Magento\Review\Model\Review::class)) {
+    eval('
+        namespace Magento\Review\Model;
+        class Review {
+            public const ENTITY_PRODUCT_CODE = "product";
+            public const STATUS_APPROVED = 1;
+            public const STATUS_PENDING = 2;
+            public const STATUS_NOT_APPROVED = 3;
+            public function getEntityIdByCode(string $code): int { return 1; }
+            public function setEntityId($id): self { return $this; }
+            public function setEntityPkValue($id): self { return $this; }
+            public function setStatusId($id): self { return $this; }
+            public function setTitle(string $title): self { return $this; }
+            public function setDetail(string $detail): self { return $this; }
+            public function setNickname(string $nickname): self { return $this; }
+            public function setStoreId(int $storeId): self { return $this; }
+            public function setStores(array $stores): self { return $this; }
+            public function save(): self { return $this; }
+            public function getId() { return 1; }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Review\Model\ReviewFactory::class)) {
+    eval('
+        namespace Magento\Review\Model;
+        class ReviewFactory {
+            public function create(array $data = []): Review {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Review\Model\Rating::class)) {
+    eval('
+        namespace Magento\Review\Model;
+        class Rating {
+            public function getResourceCollection() { return $this; }
+            public function addEntityFilter(string $code): self { return $this; }
+            public function setPositionOrder(): self { return $this; }
+            public function load(): array { return []; }
+            public function getOptions(): array { return []; }
+            public function setReviewId($id): self { return $this; }
+            public function addOptionVote($optionId, $productId): self { return $this; }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Review\Model\RatingFactory::class)) {
+    eval('
+        namespace Magento\Review\Model;
+        class RatingFactory {
+            public function create(array $data = []): Rating {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
 require dirname(__DIR__) . '/vendor/autoload.php';

@@ -62,6 +62,7 @@ class ProductDataGenerator implements DataGeneratorInterface, SubtypeAwareInterf
             'qty' => $faker->numberBetween(10, 500),
             'category_ids' => $categoryIds,
             'image_url' => self::IMAGE_URL,
+            'reviews' => $this->generateReviews($faker),
         ];
 
         if ($subtype === 'downloadable') {
@@ -90,6 +91,27 @@ class ProductDataGenerator implements DataGeneratorInterface, SubtypeAwareInterf
         }
 
         return 0;
+    }
+
+    /**
+     * Generate 0-10 Faker-based review specs for a product.
+     *
+     * @return list<array{nickname: string, title: string, detail: string, rating: int}>
+     */
+    private function generateReviews(Generator $faker): array
+    {
+        $count = $faker->numberBetween(0, 10);
+        $reviews = [];
+        for ($i = 0; $i < $count; $i++) {
+            $reviews[] = [
+                'nickname' => $faker->userName(),
+                'title'    => ucfirst($faker->sentence(3)),
+                'detail'   => $faker->paragraph(2),
+                'rating'   => $faker->numberBetween(1, 5),
+            ];
+        }
+
+        return $reviews;
     }
 
     /**

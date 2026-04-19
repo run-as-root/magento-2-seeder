@@ -181,6 +181,44 @@ final class ProductDataGeneratorTest extends TestCase
         $this->assertSame([[10], [11], [12]], $assigned);
     }
 
+    public function test_generate_includes_reviews_array(): void
+    {
+        $faker = Factory::create('en_US');
+        $registry = new GeneratedDataRegistry();
+
+        $data = (new ProductDataGenerator())->generate($faker, $registry);
+
+        $this->assertArrayHasKey('reviews', $data);
+        $this->assertIsArray($data['reviews']);
+    }
+
+    public function test_generate_reviews_contain_required_keys(): void
+    {
+        $faker = Factory::create('en_US');
+        $registry = new GeneratedDataRegistry();
+        $generator = new ProductDataGenerator();
+
+        // Generate many products to make it likely at least some reviews are produced.
+        $sawAtLeastOneReview = false;
+        for ($i = 0; $i < 30; $i++) {
+            $data = $generator->generate($faker, $registry);
+            foreach ($data['reviews'] as $review) {
+                $sawAtLeastOneReview = true;
+                $this->assertArrayHasKey('nickname', $review);
+                $this->assertArrayHasKey('title', $review);
+                $this->assertArrayHasKey('detail', $review);
+                $this->assertArrayHasKey('rating', $review);
+                $this->assertGreaterThanOrEqual(1, $review['rating']);
+                $this->assertLessThanOrEqual(5, $review['rating']);
+            }
+        }
+
+        $this->assertTrue(
+            $sawAtLeastOneReview,
+            'Expected to see at least one review across 30 generated products',
+        );
+    }
+
     public function test_generate_distributes_evenly_across_categories(): void
     {
         $faker = Factory::create('en_US');
