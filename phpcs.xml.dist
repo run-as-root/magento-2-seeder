@@ -8,8 +8,12 @@
     <!-- Fail the build on errors only; warnings are surfaced but non-fatal -->
     <arg name="warning-severity" value="0"/>
 
-    <!-- Default path to scan -->
+    <!-- Default path to scan; CLI path (e.g. `phpcs .`) overrides this -->
     <file>src</file>
+
+    <!-- Never sniff third-party code or test fixtures, even if CLI passes `.` -->
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/Test/*</exclude-pattern>
 
     <rule ref="Magento2">
         <!-- Exclude overly strict rules that don't apply to a dev-only module -->

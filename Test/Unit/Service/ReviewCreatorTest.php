@@ -12,14 +12,38 @@ use Magento\Review\Model\Rating;
 use Magento\Review\Model\RatingFactory;
 use Magento\Review\Model\Review;
 use Magento\Review\Model\ReviewFactory;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 final class ReviewCreatorTest extends TestCase
 {
+    /**
+     * setEntityId / setEntityPkValue / setStatusId / setTitle / setDetail / setNickname
+     * / setStoreId / setStores are all handled by DataObject::__call in real Magento,
+     * so createMock() cannot see them. addMethods() declares them explicitly.
+     */
+    private function buildReviewMock(): Review&MockObject
+    {
+        return $this->getMockBuilder(Review::class)
+            ->disableOriginalConstructor()
+            ->addMethods([
+                'setEntityId',
+                'setEntityPkValue',
+                'setStatusId',
+                'setTitle',
+                'setDetail',
+                'setNickname',
+                'setStoreId',
+                'setStores',
+            ])
+            ->onlyMethods(['save', 'getId', 'getEntityIdByCode'])
+            ->getMock();
+    }
+
     public function test_create_saves_review_with_spec_fields(): void
     {
-        $review = $this->createMock(Review::class);
+        $review = $this->buildReviewMock();
         $review->method('getEntityIdByCode')->willReturn(1);
         $review->expects($this->once())->method('setEntityId')->with(1)->willReturnSelf();
         $review->expects($this->once())->method('setEntityPkValue')->with(42)->willReturnSelf();
@@ -51,7 +75,7 @@ final class ReviewCreatorTest extends TestCase
 
     public function test_create_uses_product_entity_code_for_entity_id(): void
     {
-        $review = $this->createMock(Review::class);
+        $review = $this->buildReviewMock();
         $review->expects($this->once())
             ->method('getEntityIdByCode')
             ->with(Review::ENTITY_PRODUCT_CODE)
@@ -166,7 +190,7 @@ final class ReviewCreatorTest extends TestCase
 
     public function test_create_with_default_store_id_uses_1(): void
     {
-        $review = $this->createMock(Review::class);
+        $review = $this->buildReviewMock();
         $review->method('getEntityIdByCode')->willReturn(1);
         $review->method('setEntityId')->willReturnSelf();
         $review->method('setEntityPkValue')->willReturnSelf();
@@ -199,7 +223,7 @@ final class ReviewCreatorTest extends TestCase
 
     public function test_create_swallows_exception_as_warning(): void
     {
-        $review = $this->createMock(Review::class);
+        $review = $this->buildReviewMock();
         $review->method('getEntityIdByCode')->willReturn(1);
         $review->method('setEntityId')->willReturnSelf();
         $review->method('setEntityPkValue')->willReturnSelf();
@@ -410,7 +434,7 @@ final class ReviewCreatorTest extends TestCase
 
     private function buildPermissiveReview(int $reviewId): Review
     {
-        $review = $this->createMock(Review::class);
+        $review = $this->buildReviewMock();
         $review->method('getEntityIdByCode')->willReturn(1);
         $review->method('setEntityId')->willReturnSelf();
         $review->method('setEntityPkValue')->willReturnSelf();
