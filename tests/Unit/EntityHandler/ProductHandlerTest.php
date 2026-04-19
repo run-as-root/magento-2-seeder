@@ -8,6 +8,7 @@ use RunAsRoot\Seeder\EntityHandler\Product\TypeBuilderInterface;
 use RunAsRoot\Seeder\EntityHandler\Product\TypeBuilderPool;
 use RunAsRoot\Seeder\EntityHandler\ProductHandler;
 use RunAsRoot\Seeder\Service\ImageDownloader;
+use RunAsRoot\Seeder\Service\ReviewCreator;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\Data\ProductInterfaceFactory;
 use Magento\Catalog\Api\Data\ProductSearchResultsInterface;
@@ -304,6 +305,84 @@ final class ProductHandlerTest extends TestCase
         $handler->create(['sku' => 'X', 'name' => 'X', 'price' => 1.0, 'product_type' => 'bundle']);
     }
 
+    public function test_create_routes_reviews_to_review_creator(): void
+    {
+        $product = $this->createMock(Product::class);
+        $product->method('setSku')->willReturnSelf();
+        $product->method('setName')->willReturnSelf();
+        $product->method('setPrice')->willReturnSelf();
+        $product->method('setAttributeSetId')->willReturnSelf();
+        $product->method('setStatus')->willReturnSelf();
+        $product->method('setVisibility')->willReturnSelf();
+        $product->method('setWeight')->willReturnSelf();
+        $product->method('setCustomAttribute')->willReturnSelf();
+        $product->method('getId')->willReturn(42);
+
+        $factory = $this->createMock(ProductInterfaceFactory::class);
+        $factory->method('create')->willReturn($product);
+
+        $repository = $this->createMock(ProductRepositoryInterface::class);
+        $repository->method('save')->willReturn($product);
+
+        $stockItem = $this->createMock(StockItemInterface::class);
+        $stockItem->method('setQty')->willReturnSelf();
+        $stockItem->method('setIsInStock')->willReturnSelf();
+
+        $stockRegistry = $this->createMock(StockRegistryInterface::class);
+        $stockRegistry->method('getStockItemBySku')->willReturn($stockItem);
+
+        $reviewCreator = $this->createMock(ReviewCreator::class);
+        $reviewCreator->expects($this->exactly(2))
+            ->method('create')
+            ->willReturnCallback(function (int $productId, array $spec): void {
+                $this->assertSame(42, $productId);
+                $this->assertArrayHasKey('rating', $spec);
+            });
+
+        $handler = $this->createHandler(
+            productFactory: $factory,
+            productRepository: $repository,
+            stockRegistry: $stockRegistry,
+            reviewCreator: $reviewCreator,
+        );
+
+        $handler->create([
+            'sku' => 'REV-001',
+            'name' => 'Reviewed product',
+            'price' => 9.99,
+            'reviews' => [
+                ['nickname' => 'alice', 'title' => 'Great', 'detail' => 'Ok', 'rating' => 5],
+                ['nickname' => 'bob',   'title' => 'Bad',   'detail' => 'Meh', 'rating' => 1],
+            ],
+        ]);
+    }
+
+    public function test_create_skips_review_creator_when_reviews_key_missing(): void
+    {
+        $product = $this->createMock(ProductInterface::class);
+        $product->method('setSku')->willReturnSelf();
+        $product->method('setName')->willReturnSelf();
+        $product->method('setPrice')->willReturnSelf();
+        $product->method('setAttributeSetId')->willReturnSelf();
+        $product->method('setStatus')->willReturnSelf();
+        $product->method('setVisibility')->willReturnSelf();
+        $product->method('setTypeId')->willReturnSelf();
+        $product->method('setWeight')->willReturnSelf();
+
+        $factory = $this->createMock(ProductInterfaceFactory::class);
+        $factory->method('create')->willReturn($product);
+
+        $reviewCreator = $this->createMock(ReviewCreator::class);
+        $reviewCreator->expects($this->never())->method('create');
+
+        $handler = $this->createHandler(
+            productFactory: $factory,
+            reviewCreator: $reviewCreator,
+        );
+
+        $handler->create(['sku' => 'NO-REV', 'name' => 'X', 'price' => 1.0]);
+    }
+
     private function createHandler(
         ?ProductInterfaceFactory $productFactory = null,
         ?ProductRepositoryInterface $productRepository = null,
@@ -313,6 +392,7 @@ final class ProductHandlerTest extends TestCase
         ?DirectoryList $directoryList = null,
         ?StockIndexerProcessor $stockIndexerProcessor = null,
         ?TypeBuilderPool $typeBuilderPool = null,
+        ?ReviewCreator $reviewCreator = null,
     ): ProductHandler {
         if ($typeBuilderPool === null) {
             $builder = $this->createMock(TypeBuilderInterface::class);
@@ -328,6 +408,7 @@ final class ProductHandlerTest extends TestCase
             $directoryList ?? $this->createMock(DirectoryList::class),
             $stockIndexerProcessor ?? $this->createMock(StockIndexerProcessor::class),
             $typeBuilderPool,
+            $reviewCreator ?? $this->createMock(ReviewCreator::class),
         );
     }
 }

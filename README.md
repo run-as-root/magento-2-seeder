@@ -189,6 +189,12 @@ return [
 
 This triggers the Faker generation pipeline (with dependency resolution) instead of the standard array-based data flow.
 
+## Product Reviews
+
+Every seeded product automatically gets **0–10 reviews** with Faker-generated nicknames, titles, details, and a 1–5 star rating. Reviews are created against the default store (id 1) with status `Approved` so they render on the frontend immediately.
+
+No CLI flag required — reviews are part of the product seed payload. If you want to disable reviews temporarily, set the `reviews` count range in `src/DataGenerator/ProductDataGenerator.php` (`generateReviews()` helper).
+
 ## Product Types
 
 The seeder supports all five standard Magento product types. Plain `--generate=product:N` produces a weighted mix; dotted subtypes force a specific type.

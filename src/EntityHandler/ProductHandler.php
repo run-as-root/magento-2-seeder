@@ -7,6 +7,7 @@ namespace RunAsRoot\Seeder\EntityHandler;
 use RunAsRoot\Seeder\Api\EntityHandlerInterface;
 use RunAsRoot\Seeder\EntityHandler\Product\TypeBuilderPool;
 use RunAsRoot\Seeder\Service\ImageDownloader;
+use RunAsRoot\Seeder\Service\ReviewCreator;
 use Magento\Catalog\Api\Data\ProductInterfaceFactory;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
@@ -28,6 +29,7 @@ class ProductHandler implements EntityHandlerInterface
         private readonly DirectoryList $directoryList,
         private readonly StockIndexerProcessor $stockIndexerProcessor,
         private readonly TypeBuilderPool $typeBuilderPool,
+        private readonly ReviewCreator $reviewCreator,
     ) {
     }
 
@@ -108,6 +110,15 @@ class ProductHandler implements EntityHandlerInterface
         $productId = (int) $savedProduct->getId();
         if ($productId > 0) {
             $this->stockIndexerProcessor->reindexRow($productId, true);
+        }
+
+        if ($productId > 0 && isset($data['reviews']) && is_array($data['reviews'])) {
+            foreach ($data['reviews'] as $reviewSpec) {
+                if (!is_array($reviewSpec)) {
+                    continue;
+                }
+                $this->reviewCreator->create($productId, $reviewSpec);
+            }
         }
     }
 
