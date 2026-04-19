@@ -48,6 +48,36 @@ final class CategoryHandlerTest extends TestCase
         ]);
     }
 
+    public function test_create_returns_saved_category_id(): void
+    {
+        $category = $this->createMock(CategoryInterface::class);
+        $category->method('setName')->willReturnSelf();
+        $category->method('setIsActive')->willReturnSelf();
+        $category->method('setParentId')->willReturnSelf();
+
+        $savedCategory = $this->createMock(CategoryInterface::class);
+        $savedCategory->method('getId')->willReturn(42);
+
+        $factory = $this->createMock(CategoryInterfaceFactory::class);
+        $factory->method('create')->willReturn($category);
+
+        $repository = $this->createMock(CategoryRepositoryInterface::class);
+        $repository->method('save')->willReturn($savedCategory);
+
+        $handler = $this->createHandler(
+            categoryFactory: $factory,
+            categoryRepository: $repository,
+        );
+
+        $id = $handler->create([
+            'name' => 'Test Category',
+            'is_active' => true,
+            'parent_id' => 2,
+        ]);
+
+        $this->assertSame(42, $id);
+    }
+
     public function test_clean_deletes_non_root_categories(): void
     {
         $category = $this->createMock(CategoryInterface::class);

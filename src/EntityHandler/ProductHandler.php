@@ -38,7 +38,7 @@ class ProductHandler implements EntityHandlerInterface
         return 'product';
     }
 
-    public function create(array $data): void
+    public function create(array $data): int
     {
         $product = $this->productFactory->create();
         $product->setSku($data['sku'])
@@ -120,6 +120,8 @@ class ProductHandler implements EntityHandlerInterface
                 $this->reviewCreator->create($productId, $reviewSpec);
             }
         }
+
+        return $productId;
     }
 
     public function clean(): void

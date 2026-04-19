@@ -29,15 +29,15 @@ class CmsHandler implements EntityHandlerInterface
         return 'cms';
     }
 
-    public function create(array $data): void
+    public function create(array $data): int
     {
         $cmsType = $data['cms_type'] ?? 'page';
 
         if ($cmsType === 'block') {
-            $this->createBlock($data);
-        } else {
-            $this->createPage($data);
+            return $this->createBlock($data);
         }
+
+        return $this->createPage($data);
     }
 
     public function clean(): void
@@ -46,7 +46,7 @@ class CmsHandler implements EntityHandlerInterface
         $this->cleanBlocks();
     }
 
-    private function createPage(array $data): void
+    private function createPage(array $data): int
     {
         $page = $this->pageFactory->create();
         $page->setIdentifier($data['identifier'])
@@ -55,10 +55,10 @@ class CmsHandler implements EntityHandlerInterface
             ->setIsActive($data['is_active'] ?? true)
             ->setStoreId($data['store_id'] ?? [0]);
 
-        $this->pageRepository->save($page);
+        return (int) $this->pageRepository->save($page)->getId();
     }
 
-    private function createBlock(array $data): void
+    private function createBlock(array $data): int
     {
         $block = $this->blockFactory->create();
         $block->setIdentifier($data['identifier'])
@@ -67,7 +67,7 @@ class CmsHandler implements EntityHandlerInterface
             ->setIsActive($data['is_active'] ?? true)
             ->setStoreId($data['store_id'] ?? [0]);
 
-        $this->blockRepository->save($block);
+        return (int) $this->blockRepository->save($block)->getId();
     }
 
     private function cleanPages(): void

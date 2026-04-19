@@ -33,7 +33,7 @@ class OrderHandler implements EntityHandlerInterface
         return 'order';
     }
 
-    public function create(array $data): void
+    public function create(array $data): int
     {
         $storeId = (int) ($data['store_id'] ?? $this->storeManager->getDefaultStoreView()?->getId() ?? 1);
         $this->storeManager->setCurrentStore($storeId);
@@ -84,6 +84,8 @@ class OrderHandler implements EntityHandlerInterface
             $order = $this->orderRepository->get((int) $orderId);
             $this->transitionPool->get($state)->apply($order, $data);
         }
+
+        return (int) $orderId;
     }
 
     public function clean(): void

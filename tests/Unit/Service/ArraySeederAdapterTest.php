@@ -80,9 +80,11 @@ final class ArraySeederAdapterTest extends TestCase
         $callCount = 0;
         $handler->expects($this->exactly(2))
             ->method('create')
-            ->willReturnCallback(function (array $data) use (&$callCount, $expectedData): void {
+            ->willReturnCallback(function (array $data) use (&$callCount, $expectedData): int {
                 $this->assertSame($expectedData[$callCount], $data);
                 $callCount++;
+
+                return $callCount;
             });
 
         $pool = new EntityHandlerPool(['customer' => $handler]);
