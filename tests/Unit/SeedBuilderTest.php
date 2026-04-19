@@ -291,4 +291,31 @@ final class SeedBuilderTest extends TestCase
         $this->assertCount(1, $registry->getAll('product'));
         $this->assertSame([], $registry->getAll('product.bundle'));
     }
+
+    public function test_registry_is_not_written_when_handler_throws(): void
+    {
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $handler->method('create')->willThrowException(new \RuntimeException('boom'));
+
+        $generator = $this->createMock(DataGeneratorInterface::class);
+        $generator->method('generate')->willReturn(['email' => 'x@y.com']);
+
+        $registry = new GeneratedDataRegistry();
+
+        $builder = new SeedBuilder(
+            'customer',
+            new EntityHandlerPool(['customer' => $handler]),
+            new DataGeneratorPool(['customer' => $generator]),
+            new FakerFactory(),
+            $registry,
+        );
+
+        try {
+            $builder->create();
+            $this->fail('expected RuntimeException');
+        } catch (\RuntimeException) {
+        }
+
+        $this->assertSame([], $registry->getAll('customer'));
+    }
 }
