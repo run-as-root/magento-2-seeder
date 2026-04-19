@@ -434,6 +434,124 @@ final class GenerateRunnerTest extends TestCase
 
         $this->assertSame(3, $results[0]['count']);
     }
+
+    public function test_runner_wraps_iterations_in_transactions(): void
+    {
+        $generator = $this->createMock(DataGeneratorInterface::class);
+        $generator->method('getType')->willReturn('customer');
+        $generator->method('getOrder')->willReturn(30);
+        $generator->method('getDependencies')->willReturn([]);
+        $generator->method('generate')->willReturn(['email' => 'x@y.z']);
+
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $handler->method('create')->willReturn(1);
+
+        $genPool = new DataGeneratorPool(['customer' => $generator]);
+        $handlerPool = new EntityHandlerPool(['customer' => $handler]);
+        $resolver = new DependencyResolver($genPool);
+
+        $connection = $this->createMock(\Magento\Framework\DB\Adapter\AdapterInterface::class);
+        $connection->expects($this->once())->method('beginTransaction');
+        $connection->expects($this->once())->method('commit');
+        $connection->expects($this->never())->method('rollBack');
+
+        $resource = $this->createMock(\Magento\Framework\App\ResourceConnection::class);
+        $resource->method('getConnection')->willReturn($connection);
+
+        $runner = new GenerateRunner(
+            $genPool,
+            $handlerPool,
+            $resolver,
+            new FakerFactory(),
+            new GeneratedDataRegistry(),
+            $this->createMock(LoggerInterface::class),
+            $resource,
+        );
+
+        $runner->run(new GenerateRunConfig(counts: ['customer' => 3]));
+    }
+
+    public function test_runner_commits_every_batch_size_iterations(): void
+    {
+        $generator = $this->createMock(DataGeneratorInterface::class);
+        $generator->method('getType')->willReturn('customer');
+        $generator->method('getOrder')->willReturn(30);
+        $generator->method('getDependencies')->willReturn([]);
+        $generator->method('generate')->willReturn(['email' => 'x@y.z']);
+
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $handler->method('create')->willReturn(1);
+
+        $genPool = new DataGeneratorPool(['customer' => $generator]);
+        $handlerPool = new EntityHandlerPool(['customer' => $handler]);
+        $resolver = new DependencyResolver($genPool);
+
+        $connection = $this->createMock(\Magento\Framework\DB\Adapter\AdapterInterface::class);
+        // 125 iterations at BATCH_SIZE=50 → 2 intermediate commits + 1 final = 3 commits
+        // and 3 beginTransaction calls (initial + 2 after intermediate commits)
+        $connection->expects($this->exactly(3))->method('beginTransaction');
+        $connection->expects($this->exactly(3))->method('commit');
+
+        $resource = $this->createMock(\Magento\Framework\App\ResourceConnection::class);
+        $resource->method('getConnection')->willReturn($connection);
+
+        $runner = new GenerateRunner(
+            $genPool,
+            $handlerPool,
+            $resolver,
+            new FakerFactory(),
+            new GeneratedDataRegistry(),
+            $this->createMock(LoggerInterface::class),
+            $resource,
+        );
+
+        $runner->run(new GenerateRunConfig(counts: ['customer' => 125]));
+    }
+
+    public function test_runner_rolls_back_on_iteration_exception_and_continues(): void
+    {
+        $generator = $this->createMock(DataGeneratorInterface::class);
+        $generator->method('getType')->willReturn('customer');
+        $generator->method('getOrder')->willReturn(30);
+        $generator->method('getDependencies')->willReturn([]);
+        $generator->method('generate')->willReturn(['email' => 'x@y.z']);
+
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $calls = 0;
+        $handler->method('create')->willReturnCallback(function () use (&$calls): int {
+            $calls++;
+            if ($calls === 2) {
+                throw new \RuntimeException('boom');
+            }
+            return $calls;
+        });
+
+        $genPool = new DataGeneratorPool(['customer' => $generator]);
+        $handlerPool = new EntityHandlerPool(['customer' => $handler]);
+        $resolver = new DependencyResolver($genPool);
+
+        $connection = $this->createMock(\Magento\Framework\DB\Adapter\AdapterInterface::class);
+        $connection->expects($this->atLeastOnce())->method('rollBack');
+        $connection->expects($this->atLeastOnce())->method('commit');
+
+        $resource = $this->createMock(\Magento\Framework\App\ResourceConnection::class);
+        $resource->method('getConnection')->willReturn($connection);
+
+        $runner = new GenerateRunner(
+            $genPool,
+            $handlerPool,
+            $resolver,
+            new FakerFactory(),
+            new GeneratedDataRegistry(),
+            $this->createMock(LoggerInterface::class),
+            $resource,
+        );
+
+        $results = $runner->run(new GenerateRunConfig(counts: ['customer' => 5]));
+
+        $this->assertSame(4, $results[0]['count']);
+        $this->assertSame(1, $results[0]['failed']);
+    }
 }
 
 /**

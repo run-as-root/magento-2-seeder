@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace RunAsRoot\Seeder\Service;
 
+use Magento\Framework\App\ResourceConnection;
 use Psr\Log\LoggerInterface;
 use RunAsRoot\Seeder\Api\SubtypeAwareInterface;
 
 class GenerateRunner
 {
+    private const BATCH_SIZE = 50;
+
     public function __construct(
         private readonly DataGeneratorPool $generatorPool,
         private readonly EntityHandlerPool $handlerPool,
@@ -16,6 +19,7 @@ class GenerateRunner
         private readonly FakerFactory $fakerFactory,
         private readonly GeneratedDataRegistry $registry,
         private readonly LoggerInterface $logger,
+        private readonly ?ResourceConnection $resource = null,
     ) {
     }
 
@@ -69,6 +73,10 @@ class GenerateRunner
         $created = 0;
         $failed = 0;
         $lastError = null;
+        $connection = $this->resource?->getConnection();
+        $sinceLastCommit = 0;
+        $connection?->beginTransaction();
+
         try {
             for ($i = 0; $i < $count; $i++) {
                 try {
@@ -76,7 +84,23 @@ class GenerateRunner
                     $data['id'] = $handler->create($data);
                     $this->registry->add($baseType, $data);
                     $created++;
+                    $sinceLastCommit++;
+
+                    if ($connection !== null && $sinceLastCommit >= self::BATCH_SIZE) {
+                        $connection->commit();
+                        $connection->beginTransaction();
+                        $sinceLastCommit = 0;
+                    }
                 } catch (\Throwable $e) {
+                    if ($connection !== null) {
+                        try {
+                            $connection->rollBack();
+                        } catch (\Throwable) {
+                        }
+                        $connection->beginTransaction();
+                        $sinceLastCommit = 0;
+                    }
+
                     $failed++;
                     $lastError = $e->getMessage();
                     $this->logger->error('Generate failed', [
@@ -86,6 +110,8 @@ class GenerateRunner
                     ]);
 
                     if ($stopOnError) {
+                        $connection?->commit();
+
                         if ($onProgress !== null) {
                             $onProgress($type, $created + $failed, $count);
                         }
@@ -104,6 +130,14 @@ class GenerateRunner
                     $onProgress($type, $created + $failed, $count);
                 }
             }
+
+            $connection?->commit();
+        } catch (\Throwable $e) {
+            try {
+                $connection?->rollBack();
+            } catch (\Throwable) {
+            }
+            throw $e;
         } finally {
             if ($subtypeAware && $generator instanceof SubtypeAwareInterface) {
                 $generator->setForcedSubtype(null);

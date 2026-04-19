@@ -334,6 +334,10 @@ After each invoice-based transition, the order state is explicitly set and saved
 
 Seeded orders only use **simple** products as cart items — bundles, configurables, grouped, and downloadables require per-cart option selections that would complicate the seeder. `OrderDataGenerator` declares `product.simple` as its product dependency, so the dependency resolver always produces the right type.
 
+## Performance
+
+Iterations are batched into database transactions of 50 entries each. For large runs (e.g. `--generate=product:5000`), this cuts per-iteration commit overhead roughly in half. A failing iteration rolls back only its batch's pending work and continues with the next batch.
+
 ## License
 
 MIT

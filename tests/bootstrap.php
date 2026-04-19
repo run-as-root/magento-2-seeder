@@ -1218,6 +1218,9 @@ if (!interface_exists(\Magento\Framework\DB\Adapter\AdapterInterface::class)) {
             public function fetchCol($select, $bind = []): array;
             public function fetchOne($select, $bind = []);
             public function delete(string $table, $where = ""): int;
+            public function beginTransaction(): self;
+            public function commit(): self;
+            public function rollBack(): self;
         }
     ');
 }
