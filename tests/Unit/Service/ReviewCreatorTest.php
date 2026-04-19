@@ -230,6 +230,107 @@ final class ReviewCreatorTest extends TestCase
         ]);
     }
 
+    public function test_create_applies_vote_to_every_rating_in_collection(): void
+    {
+        $review = $this->buildPermissiveReview(555);
+
+        $reviewFactory = $this->createMock(ReviewFactory::class);
+        $reviewFactory->method('create')->willReturn($review);
+
+        $buildRatingObj = function (int $optId): Rating {
+            $option = new class($optId) {
+                public function __construct(private int $optId) {}
+                public function getId(): int { return $this->optId; }
+            };
+            $ratingObj = $this->createMock(Rating::class);
+            $ratingObj->method('getOptions')->willReturn([$option, $option, $option, $option, $option]);
+            $ratingObj->expects($this->once())->method('setReviewId')->with(555)->willReturnSelf();
+            $ratingObj->expects($this->once())->method('addOptionVote')->with($optId, 321)->willReturnSelf();
+
+            return $ratingObj;
+        };
+
+        $price = $buildRatingObj(100);
+        $value = $buildRatingObj(200);
+        $quality = $buildRatingObj(300);
+
+        $collection = $this->createMock(Rating::class);
+        $collection->method('addEntityFilter')->willReturnSelf();
+        $collection->method('setPositionOrder')->willReturnSelf();
+        $collection->method('load')->willReturn([$price, $value, $quality]);
+
+        $rating = $this->createMock(Rating::class);
+        $rating->method('getResourceCollection')->willReturn($collection);
+
+        $ratingFactory = $this->createMock(RatingFactory::class);
+        $ratingFactory->method('create')->willReturn($rating);
+
+        $creator = new ReviewCreator(
+            $reviewFactory,
+            $ratingFactory,
+            $this->createMock(LoggerInterface::class),
+            $this->createMock(ResourceConnection::class),
+        );
+
+        $creator->create(321, [
+            'nickname' => 'n',
+            'title'    => 't',
+            'detail'   => 'd',
+            'rating'   => 3,
+        ]);
+    }
+
+    public function test_create_continues_when_one_rating_throws(): void
+    {
+        $review = $this->buildPermissiveReview(555);
+
+        $reviewFactory = $this->createMock(ReviewFactory::class);
+        $reviewFactory->method('create')->willReturn($review);
+
+        $option = new class() {
+            public function getId(): int { return 11; }
+        };
+
+        // First rating throws on addOptionVote, second must still be invoked.
+        $broken = $this->createMock(Rating::class);
+        $broken->method('getOptions')->willReturn([$option, $option, $option, $option, $option]);
+        $broken->method('setReviewId')->willReturnSelf();
+        $broken->method('addOptionVote')->willThrowException(new \RuntimeException('boom'));
+
+        $working = $this->createMock(Rating::class);
+        $working->method('getOptions')->willReturn([$option, $option, $option, $option, $option]);
+        $working->expects($this->once())->method('setReviewId')->with(555)->willReturnSelf();
+        $working->expects($this->once())->method('addOptionVote')->willReturnSelf();
+
+        $collection = $this->createMock(Rating::class);
+        $collection->method('addEntityFilter')->willReturnSelf();
+        $collection->method('setPositionOrder')->willReturnSelf();
+        $collection->method('load')->willReturn([$broken, $working]);
+
+        $rating = $this->createMock(Rating::class);
+        $rating->method('getResourceCollection')->willReturn($collection);
+
+        $ratingFactory = $this->createMock(RatingFactory::class);
+        $ratingFactory->method('create')->willReturn($rating);
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->atLeastOnce())->method('warning');
+
+        $creator = new ReviewCreator(
+            $reviewFactory,
+            $ratingFactory,
+            $logger,
+            $this->createMock(ResourceConnection::class),
+        );
+
+        $creator->create(321, [
+            'nickname' => 'n',
+            'title'    => 't',
+            'detail'   => 'd',
+            'rating'   => 3,
+        ]);
+    }
+
     public function test_clean_seed_reviews_deletes_reviews_for_seed_products(): void
     {
         $select = $this->createMock(Select::class);

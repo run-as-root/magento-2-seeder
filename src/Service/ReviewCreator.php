@@ -60,13 +60,24 @@ class ReviewCreator
                 ->load();
 
             foreach ($ratings as $ratingObj) {
-                $options = $ratingObj->getOptions();
-                if (!isset($options[$rating - 1])) {
-                    continue;
+                try {
+                    $options = $ratingObj->getOptions();
+                    if (!isset($options[$rating - 1])) {
+                        continue;
+                    }
+                    $optionId = (int) $options[$rating - 1]->getId();
+                    if ($optionId <= 0) {
+                        continue;
+                    }
+                    $ratingObj->setReviewId($review->getId())
+                        ->addOptionVote($optionId, $productId);
+                } catch (\Throwable $innerError) {
+                    $this->logger->warning(sprintf(
+                        'ReviewCreator: failed to apply rating vote for product %d: %s',
+                        $productId,
+                        $innerError->getMessage()
+                    ));
                 }
-                $optionId = (int) $options[$rating - 1]->getId();
-                $ratingObj->setReviewId($review->getId())
-                    ->addOptionVote($optionId, $productId);
             }
         } catch (\Throwable $e) {
             $this->logger->warning(sprintf(
