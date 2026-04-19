@@ -42,3 +42,37 @@ jobs:
           restore-keys: composer-phpstan-
       - run: composer install --prefer-dist --no-interaction --no-progress
       - run: vendor/bin/phpstan analyse --no-progress
+
+  coverage:
+    name: Coverage (clover)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: pcov
+          tools: composer:v2
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-coverage-${{ hashFiles('composer.json') }}
+          restore-keys: composer-coverage-
+      - run: composer install --prefer-dist --no-interaction --no-progress
+      - name: PHPUnit with clover coverage
+        run: vendor/bin/phpunit --testsuite=Unit --coverage-clover=coverage.xml
+      - name: PR comment + job summary
+        if: github.event_name == 'pull_request'
+        uses: lucassabreu/comment-coverage-clover@v0.15.3
+        with:
+          file: coverage.xml
+      - name: Upload clover artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-clover
+          path: coverage.xml
+          retention-days: 14
