@@ -38,7 +38,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "RunAsRoot\\Seeder\\Test\\": "tests/"
+            "RunAsRoot\\Seeder\\Test\\": "Test/"
         }
     },
     "scripts": {

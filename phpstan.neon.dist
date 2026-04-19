@@ -3,7 +3,7 @@ parameters:
     paths:
         - src
     excludePaths:
-        - tests/*
+        - Test/*
     ignoreErrors:
         - '#Class Magento\\[\\A-Za-z]+ not found#'
         - '#Call to method [a-zA-Z]+\(\) on an unknown class Magento\\#'
