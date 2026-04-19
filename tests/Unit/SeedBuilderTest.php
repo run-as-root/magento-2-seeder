@@ -164,4 +164,41 @@ final class SeedBuilderTest extends TestCase
         $this->assertSame(['bundle'], $generator->forcedHistory);
         $this->assertNull($generator->forced, 'subtype must be cleared after create()');
     }
+
+    public function test_subtype_is_cleared_when_create_throws(): void
+    {
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $handler->method('create')->willThrowException(new \RuntimeException('boom'));
+
+        $generator = new class implements
+            \RunAsRoot\Seeder\Api\DataGeneratorInterface,
+            \RunAsRoot\Seeder\Api\SubtypeAwareInterface {
+            public ?string $forced = null;
+            public function getType(): string { return 'product'; }
+            public function getOrder(): int { return 20; }
+            public function generate(
+                \Faker\Generator $f,
+                \RunAsRoot\Seeder\Service\GeneratedDataRegistry $r
+            ): array { return ['sku' => 'X']; }
+            public function getDependencies(): array { return []; }
+            public function getDependencyCount(string $t, int $c): int { return 0; }
+            public function setForcedSubtype(?string $subtype): void { $this->forced = $subtype; }
+        };
+
+        $builder = new SeedBuilder(
+            'product',
+            new EntityHandlerPool(['product' => $handler]),
+            new DataGeneratorPool(['product' => $generator]),
+            new FakerFactory(),
+            new GeneratedDataRegistry(),
+        );
+
+        try {
+            $builder->subtype('bundle')->create();
+            $this->fail('expected RuntimeException to bubble');
+        } catch (\RuntimeException) {
+        }
+
+        $this->assertNull($generator->forced, 'subtype must be cleared even when handler throws');
+    }
 }
