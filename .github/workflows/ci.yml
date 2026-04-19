@@ -30,8 +30,23 @@ jobs:
         uses: actions/cache@v4
         with:
           path: vendor
-          key: composer-${{ matrix.php }}-${{ hashFiles('composer.json') }}
-          restore-keys: composer-${{ matrix.php }}-
+          key: composer-${{ matrix.php }}-mageos-${{ hashFiles('composer.json') }}
+          restore-keys: composer-${{ matrix.php }}-mageos-
+
+      - name: Strip magento/* deps from composer.json
+        # Tests stub every Magento class via tests/bootstrap.php, so composer does
+        # not need to resolve magento/framework et al. They are only declared so
+        # the module behaves correctly once dropped into a real Magento project
+        # (where Magento provides those packages itself). Removing them here keeps
+        # CI self-contained without needing a Magento installation.
+        run: |
+          php -r '
+            $c = json_decode(file_get_contents("composer.json"), true);
+            foreach (array_keys($c["require"]) as $pkg) {
+              if (str_starts_with($pkg, "magento/")) { unset($c["require"][$pkg]); }
+            }
+            file_put_contents("composer.json", json_encode($c, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+          '
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
