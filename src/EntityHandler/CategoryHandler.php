@@ -27,7 +27,7 @@ class CategoryHandler implements EntityHandlerInterface
         return 'category';
     }
 
-    public function create(array $data): void
+    public function create(array $data): int
     {
         $category = $this->categoryFactory->create();
         $category->setName($data['name']);
@@ -42,7 +42,9 @@ class CategoryHandler implements EntityHandlerInterface
             $category->setCustomAttribute('url_key', $data['url_key']);
         }
 
-        $this->categoryRepository->save($category);
+        $savedCategory = $this->categoryRepository->save($category);
+
+        return (int) $savedCategory->getId();
     }
 
     public function clean(): void

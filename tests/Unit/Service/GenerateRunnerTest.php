@@ -120,6 +120,40 @@ final class GenerateRunnerTest extends TestCase
         $this->assertSame('a@test.com', $stored[0]['email']);
     }
 
+    public function test_stores_handler_returned_id_in_registry(): void
+    {
+        $registry = new GeneratedDataRegistry();
+
+        $generator = $this->createMock(DataGeneratorInterface::class);
+        $generator->method('getType')->willReturn('category');
+        $generator->method('getOrder')->willReturn(10);
+        $generator->method('getDependencies')->willReturn([]);
+        $generator->method('generate')->willReturn(['name' => 'Home & Garden']);
+
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $handler->method('create')->willReturn(42);
+
+        $genPool = new DataGeneratorPool(['category' => $generator]);
+        $handlerPool = new EntityHandlerPool(['category' => $handler]);
+        $resolver = new DependencyResolver($genPool);
+
+        $runner = new GenerateRunner(
+            $genPool,
+            $handlerPool,
+            $resolver,
+            new FakerFactory(),
+            $registry,
+            $this->createMock(LoggerInterface::class),
+        );
+
+        $runner->run(new GenerateRunConfig(counts: ['category' => 1]));
+
+        $stored = $registry->getAll('category');
+        $this->assertCount(1, $stored);
+        $this->assertSame(42, $stored[0]['id'], 'Handler-returned id must be stored in registry so later generators can reference it');
+        $this->assertSame('Home & Garden', $stored[0]['name']);
+    }
+
     public function test_all_iterations_failing_reports_failure_even_without_stop_on_error(): void
     {
         $generator = $this->createMock(DataGeneratorInterface::class);
@@ -163,11 +197,13 @@ final class GenerateRunnerTest extends TestCase
 
         $handler = $this->createMock(EntityHandlerInterface::class);
         $calls = 0;
-        $handler->method('create')->willReturnCallback(function () use (&$calls): void {
+        $handler->method('create')->willReturnCallback(function () use (&$calls): int {
             $calls++;
             if ($calls === 2) {
                 throw new \RuntimeException('boom');
             }
+
+            return $calls;
         });
 
         $genPool = new DataGeneratorPool(['customer' => $generator]);

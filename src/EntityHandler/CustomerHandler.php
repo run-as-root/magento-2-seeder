@@ -29,7 +29,7 @@ class CustomerHandler implements EntityHandlerInterface
         return 'customer';
     }
 
-    public function create(array $data): void
+    public function create(array $data): int
     {
         $customer = $this->customerFactory->create();
         $customer->setEmail($data['email'])
@@ -65,6 +65,8 @@ class CustomerHandler implements EntityHandlerInterface
                 $this->addressRepository->save($address);
             }
         }
+
+        return (int) $createdCustomer->getId();
     }
 
     public function clean(): void

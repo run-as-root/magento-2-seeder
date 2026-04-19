@@ -61,7 +61,7 @@ class GenerateRunner
             for ($i = 0; $i < $count; $i++) {
                 try {
                     $data = $generator->generate($faker, $this->registry);
-                    $handler->create($data);
+                    $data['id'] = $handler->create($data);
                     $this->registry->add($baseType, $data);
                     $created++;
                 } catch (\Throwable $e) {
