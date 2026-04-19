@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace RunAsRoot\Seeder\EntityHandler;
 
 use RunAsRoot\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\EntityHandler\Product\TypeBuilderPool;
 use RunAsRoot\Seeder\Service\ImageDownloader;
 use Magento\Catalog\Api\Data\ProductInterfaceFactory;
 use Magento\Catalog\Api\ProductRepositoryInterface;
@@ -26,6 +27,7 @@ class ProductHandler implements EntityHandlerInterface
         private readonly ImageDownloader $imageDownloader,
         private readonly DirectoryList $directoryList,
         private readonly StockIndexerProcessor $stockIndexerProcessor,
+        private readonly TypeBuilderPool $typeBuilderPool,
     ) {
     }
 
@@ -43,8 +45,14 @@ class ProductHandler implements EntityHandlerInterface
             ->setAttributeSetId($data['attribute_set_id'] ?? 4)
             ->setStatus($data['status'] ?? Status::STATUS_ENABLED)
             ->setVisibility($data['visibility'] ?? Visibility::VISIBILITY_BOTH)
-            ->setTypeId($data['type_id'] ?? Type::TYPE_SIMPLE)
             ->setWeight($data['weight'] ?? 1.0);
+
+        $subtype = $data['product_type'] ?? Type::TYPE_SIMPLE;
+        if (!$this->typeBuilderPool->has($subtype)) {
+            throw new \InvalidArgumentException("Unsupported product_type: {$subtype}");
+        }
+        $builder = $this->typeBuilderPool->get($subtype);
+        $builder->build($product, $data);
 
         if (isset($data['description'])) {
             $product->setCustomAttribute('description', $data['description']);
@@ -89,6 +97,8 @@ class ProductHandler implements EntityHandlerInterface
         }
 
         $savedProduct = $this->productRepository->save($product);
+
+        $builder->afterSave($savedProduct, $data);
 
         $stockItem = $this->stockRegistry->getStockItemBySku($data['sku']);
         $stockItem->setQty($data['qty'] ?? 100);

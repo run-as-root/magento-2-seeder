@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace RunAsRoot\Seeder\Test\Unit\EntityHandler;
 
+use RunAsRoot\Seeder\EntityHandler\Product\TypeBuilderInterface;
+use RunAsRoot\Seeder\EntityHandler\Product\TypeBuilderPool;
 use RunAsRoot\Seeder\EntityHandler\ProductHandler;
 use RunAsRoot\Seeder\Service\ImageDownloader;
 use Magento\Catalog\Api\Data\ProductInterface;
@@ -246,6 +248,62 @@ final class ProductHandlerTest extends TestCase
         $handler->clean();
     }
 
+    public function test_create_delegates_subtype_work_to_builder(): void
+    {
+        $product = $this->createMock(Product::class);
+        $product->method('setSku')->willReturnSelf();
+        $product->method('setName')->willReturnSelf();
+        $product->method('setPrice')->willReturnSelf();
+        $product->method('setAttributeSetId')->willReturnSelf();
+        $product->method('setStatus')->willReturnSelf();
+        $product->method('setVisibility')->willReturnSelf();
+        $product->method('setWeight')->willReturnSelf();
+
+        $builder = $this->createMock(TypeBuilderInterface::class);
+        $builder->expects($this->once())->method('build')->with($product, $this->callback(fn ($d) => isset($d['sku'])));
+        $builder->expects($this->once())->method('afterSave')->with($product, $this->callback(fn ($d) => isset($d['sku'])));
+
+        $pool = new TypeBuilderPool(['configurable' => $builder]);
+
+        $factory = $this->createMock(ProductInterfaceFactory::class);
+        $factory->method('create')->willReturn($product);
+
+        $repository = $this->createMock(ProductRepositoryInterface::class);
+        $repository->method('save')->willReturn($product);
+
+        $handler = $this->createHandler(
+            productFactory: $factory,
+            productRepository: $repository,
+            typeBuilderPool: $pool,
+        );
+
+        $handler->create(['sku' => 'CFG-001', 'name' => 'X', 'price' => 10.0, 'product_type' => 'configurable']);
+    }
+
+    public function test_create_throws_on_unknown_product_type(): void
+    {
+        $product = $this->createMock(Product::class);
+        $product->method('setSku')->willReturnSelf();
+        $product->method('setName')->willReturnSelf();
+        $product->method('setPrice')->willReturnSelf();
+        $product->method('setAttributeSetId')->willReturnSelf();
+        $product->method('setStatus')->willReturnSelf();
+        $product->method('setVisibility')->willReturnSelf();
+        $product->method('setWeight')->willReturnSelf();
+
+        $factory = $this->createMock(ProductInterfaceFactory::class);
+        $factory->method('create')->willReturn($product);
+
+        $pool = new TypeBuilderPool([]); // empty pool
+
+        $handler = $this->createHandler(productFactory: $factory, typeBuilderPool: $pool);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unsupported product_type: bundle');
+
+        $handler->create(['sku' => 'X', 'name' => 'X', 'price' => 1.0, 'product_type' => 'bundle']);
+    }
+
     private function createHandler(
         ?ProductInterfaceFactory $productFactory = null,
         ?ProductRepositoryInterface $productRepository = null,
@@ -254,7 +312,13 @@ final class ProductHandlerTest extends TestCase
         ?ImageDownloader $imageDownloader = null,
         ?DirectoryList $directoryList = null,
         ?StockIndexerProcessor $stockIndexerProcessor = null,
+        ?TypeBuilderPool $typeBuilderPool = null,
     ): ProductHandler {
+        if ($typeBuilderPool === null) {
+            $builder = $this->createMock(TypeBuilderInterface::class);
+            $typeBuilderPool = new TypeBuilderPool(['simple' => $builder]);
+        }
+
         return new ProductHandler(
             $productFactory ?? $this->createMock(ProductInterfaceFactory::class),
             $productRepository ?? $this->createMock(ProductRepositoryInterface::class),
@@ -263,6 +327,7 @@ final class ProductHandlerTest extends TestCase
             $imageDownloader ?? $this->createMock(ImageDownloader::class),
             $directoryList ?? $this->createMock(DirectoryList::class),
             $stockIndexerProcessor ?? $this->createMock(StockIndexerProcessor::class),
+            $typeBuilderPool,
         );
     }
 }

@@ -6,6 +6,7 @@ namespace RunAsRoot\Seeder\Test\Unit\Service;
 
 use RunAsRoot\Seeder\Api\DataGeneratorInterface;
 use RunAsRoot\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\Api\SubtypeAwareInterface;
 use RunAsRoot\Seeder\Service\DataGeneratorPool;
 use RunAsRoot\Seeder\Service\DependencyResolver;
 use RunAsRoot\Seeder\Service\EntityHandlerPool;
@@ -219,4 +220,114 @@ final class GenerateRunnerTest extends TestCase
 
         $this->assertFalse($results[0]['success']);
     }
+
+    public function test_runner_forces_subtype_on_dotted_key_via_setter(): void
+    {
+        $generator = $this->createMock(SubtypeAwareDataGeneratorStub::class);
+        $generator->method('getType')->willReturn('product');
+        $generator->method('getOrder')->willReturn(20);
+        $generator->method('getDependencies')->willReturn([]);
+        $generator->method('generate')->willReturn(['sku' => 'SEED-1']);
+
+        $calls = [];
+        $generator->expects($this->exactly(2))
+            ->method('setForcedSubtype')
+            ->willReturnCallback(function (?string $subtype) use (&$calls): void {
+                $calls[] = $subtype;
+            });
+
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $handler->expects($this->exactly(3))->method('create');
+
+        $genPool = new DataGeneratorPool(['product' => $generator]);
+        $handlerPool = new EntityHandlerPool(['product' => $handler]);
+        $resolver = new DependencyResolver($genPool);
+
+        $runner = new GenerateRunner(
+            $genPool,
+            $handlerPool,
+            $resolver,
+            new FakerFactory(),
+            new GeneratedDataRegistry(),
+            $this->createMock(LoggerInterface::class),
+        );
+
+        $config = new GenerateRunConfig(counts: ['product.bundle' => 3]);
+        $results = $runner->run($config);
+
+        $this->assertSame(['bundle', null], $calls);
+        $this->assertSame('product.bundle', $results[0]['type']);
+        $this->assertTrue($results[0]['success']);
+        $this->assertSame(3, $results[0]['count']);
+    }
+
+    public function test_runner_does_not_call_setter_on_plain_type(): void
+    {
+        $generator = $this->createMock(SubtypeAwareDataGeneratorStub::class);
+        $generator->method('getType')->willReturn('product');
+        $generator->method('getOrder')->willReturn(20);
+        $generator->method('getDependencies')->willReturn([]);
+        $generator->method('generate')->willReturn(['sku' => 'SEED-1']);
+
+        $generator->expects($this->never())->method('setForcedSubtype');
+
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $handler->expects($this->exactly(3))->method('create');
+
+        $genPool = new DataGeneratorPool(['product' => $generator]);
+        $handlerPool = new EntityHandlerPool(['product' => $handler]);
+        $resolver = new DependencyResolver($genPool);
+
+        $runner = new GenerateRunner(
+            $genPool,
+            $handlerPool,
+            $resolver,
+            new FakerFactory(),
+            new GeneratedDataRegistry(),
+            $this->createMock(LoggerInterface::class),
+        );
+
+        $config = new GenerateRunConfig(counts: ['product' => 3]);
+        $runner->run($config);
+    }
+
+    public function test_runner_skips_setter_on_non_subtype_aware_generator(): void
+    {
+        $generator = $this->createMock(DataGeneratorInterface::class);
+        $generator->method('getType')->willReturn('product');
+        $generator->method('getOrder')->willReturn(20);
+        $generator->method('getDependencies')->willReturn([]);
+        $generator->expects($this->exactly(3))
+            ->method('generate')
+            ->willReturn(['sku' => 'SEED-1']);
+
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $handler->expects($this->exactly(3))->method('create');
+
+        $genPool = new DataGeneratorPool(['product' => $generator]);
+        $handlerPool = new EntityHandlerPool(['product' => $handler]);
+        $resolver = new DependencyResolver($genPool);
+
+        $runner = new GenerateRunner(
+            $genPool,
+            $handlerPool,
+            $resolver,
+            new FakerFactory(),
+            new GeneratedDataRegistry(),
+            $this->createMock(LoggerInterface::class),
+        );
+
+        $config = new GenerateRunConfig(counts: ['product.bundle' => 3]);
+        $results = $runner->run($config);
+
+        $this->assertSame(3, $results[0]['count']);
+    }
+}
+
+/**
+ * Test stub combining DataGeneratorInterface and SubtypeAwareInterface so PHPUnit
+ * can build a single mock that satisfies both.
+ */
+abstract class SubtypeAwareDataGeneratorStub implements DataGeneratorInterface, SubtypeAwareInterface
+{
 }

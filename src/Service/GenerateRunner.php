@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace RunAsRoot\Seeder\Service;
 
 use Psr\Log\LoggerInterface;
+use RunAsRoot\Seeder\Api\SubtypeAwareInterface;
 
 class GenerateRunner
 {
@@ -41,36 +42,51 @@ class GenerateRunner
     /** @return array{type: string, success: bool, count: int, failed: int, error: ?string} */
     private function generateType(string $type, int $count, \Faker\Generator $faker, bool $stopOnError): array
     {
-        $generator = $this->generatorPool->get($type);
-        $handler = $this->handlerPool->get($type);
+        $parts = explode('.', $type, 2);
+        $baseType = $parts[0];
+        $subtype = $parts[1] ?? null;
+
+        $generator = $this->generatorPool->get($baseType);
+        $handler = $this->handlerPool->get($baseType);
+
+        $subtypeAware = $subtype !== null && $generator instanceof SubtypeAwareInterface;
+        if ($subtypeAware) {
+            $generator->setForcedSubtype($subtype);
+        }
 
         $created = 0;
         $failed = 0;
         $lastError = null;
-        for ($i = 0; $i < $count; $i++) {
-            try {
-                $data = $generator->generate($faker, $this->registry);
-                $handler->create($data);
-                $this->registry->add($type, $data);
-                $created++;
-            } catch (\Throwable $e) {
-                $failed++;
-                $lastError = $e->getMessage();
-                $this->logger->error('Generate failed', [
-                    'type' => $type,
-                    'iteration' => $i,
-                    'exception' => $e,
-                ]);
-
-                if ($stopOnError) {
-                    return [
+        try {
+            for ($i = 0; $i < $count; $i++) {
+                try {
+                    $data = $generator->generate($faker, $this->registry);
+                    $handler->create($data);
+                    $this->registry->add($baseType, $data);
+                    $created++;
+                } catch (\Throwable $e) {
+                    $failed++;
+                    $lastError = $e->getMessage();
+                    $this->logger->error('Generate failed', [
                         'type' => $type,
-                        'success' => false,
-                        'count' => $created,
-                        'failed' => $failed,
-                        'error' => $lastError,
-                    ];
+                        'iteration' => $i,
+                        'exception' => $e,
+                    ]);
+
+                    if ($stopOnError) {
+                        return [
+                            'type' => $type,
+                            'success' => false,
+                            'count' => $created,
+                            'failed' => $failed,
+                            'error' => $lastError,
+                        ];
+                    }
                 }
+            }
+        } finally {
+            if ($subtypeAware) {
+                $generator->setForcedSubtype(null);
             }
         }
 
@@ -85,11 +101,15 @@ class GenerateRunner
 
     private function cleanTypes(array $types): void
     {
-        $reversed = array_reverse($types);
+        $baseTypes = [];
+        foreach ($types as $type) {
+            $baseTypes[] = explode('.', $type, 2)[0];
+        }
+        $reversed = array_reverse(array_values(array_unique($baseTypes)));
 
-        foreach ($reversed as $type) {
-            if ($this->handlerPool->has($type)) {
-                $this->handlerPool->get($type)->clean();
+        foreach ($reversed as $baseType) {
+            if ($this->handlerPool->has($baseType)) {
+                $this->handlerPool->get($baseType)->clean();
             }
         }
     }

@@ -28,6 +28,33 @@
         </arguments>
     </type>
 
+    <!-- Product Type Builder Pool -->
+    <type name="RunAsRoot\Seeder\EntityHandler\Product\TypeBuilderPool">
+        <arguments>
+            <argument name="builders" xsi:type="array">
+                <item name="simple" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Product\TypeBuilder\SimpleBuilder</item>
+                <item name="configurable" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Product\TypeBuilder\ConfigurableBuilder</item>
+                <item name="bundle" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Product\TypeBuilder\BundleBuilder</item>
+                <item name="grouped" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Product\TypeBuilder\GroupedBuilder</item>
+                <item name="downloadable" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Product\TypeBuilder\DownloadableBuilder</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Order State Transition Pool -->
+    <type name="RunAsRoot\Seeder\EntityHandler\Order\StateTransitionPool">
+        <arguments>
+            <argument name="transitions" xsi:type="array">
+                <item name="new" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Order\StateTransition\NewTransition</item>
+                <item name="processing" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Order\StateTransition\ProcessingTransition</item>
+                <item name="complete" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Order\StateTransition\CompleteTransition</item>
+                <item name="canceled" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Order\StateTransition\CanceledTransition</item>
+                <item name="holded" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Order\StateTransition\HoldedTransition</item>
+                <item name="closed" xsi:type="object">RunAsRoot\Seeder\EntityHandler\Order\StateTransition\ClosedTransition</item>
+            </argument>
+        </arguments>
+    </type>
+
     <!-- CLI Command Registration -->
     <type name="Magento\Framework\Console\CommandListInterface">
         <arguments>

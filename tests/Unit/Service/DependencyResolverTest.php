@@ -98,6 +98,65 @@ final class DependencyResolverTest extends TestCase
         $this->assertSame('order', $keys[1]);
     }
 
+    public function test_resolves_deps_for_dotted_product_subtype_by_aggregating_to_base_type(): void
+    {
+        $categoryGen = $this->createGeneratorMock('category', 10, []);
+        $productGen = $this->createGeneratorMock('product', 20, ['category']);
+        $productGen->method('getDependencyCount')
+            ->with('category', 20)
+            ->willReturn(4);
+
+        $pool = new DataGeneratorPool([
+            'category' => $categoryGen,
+            'product' => $productGen,
+        ]);
+
+        $resolver = new DependencyResolver($pool);
+        $result = $resolver->resolve(['product.bundle' => 20]);
+
+        $this->assertSame(4, $result['category']);
+        $this->assertSame(20, $result['product.bundle']);
+    }
+
+    public function test_combines_plain_and_dotted_product_counts_for_dep_math(): void
+    {
+        $categoryGen = $this->createGeneratorMock('category', 10, []);
+        $productGen = $this->createGeneratorMock('product', 20, ['category']);
+        $productGen->method('getDependencyCount')
+            ->with('category', 120)
+            ->willReturn(24);
+
+        $pool = new DataGeneratorPool([
+            'category' => $categoryGen,
+            'product' => $productGen,
+        ]);
+
+        $resolver = new DependencyResolver($pool);
+        $result = $resolver->resolve(['product' => 100, 'product.bundle' => 20]);
+
+        $this->assertSame(24, $result['category']);
+    }
+
+    public function test_preserves_dotted_keys_in_output(): void
+    {
+        $categoryGen = $this->createGeneratorMock('category', 10, []);
+        $productGen = $this->createGeneratorMock('product', 20, ['category']);
+        $productGen->method('getDependencyCount')->willReturn(10);
+
+        $pool = new DataGeneratorPool([
+            'category' => $categoryGen,
+            'product' => $productGen,
+        ]);
+
+        $resolver = new DependencyResolver($pool);
+        $result = $resolver->resolve(['product' => 100, 'product.bundle' => 20]);
+
+        $this->assertArrayHasKey('product', $result);
+        $this->assertArrayHasKey('product.bundle', $result);
+        $this->assertSame(100, $result['product']);
+        $this->assertSame(20, $result['product.bundle']);
+    }
+
     private function createGeneratorMock(string $type, int $order, array $deps): DataGeneratorInterface
     {
         $mock = $this->createMock(DataGeneratorInterface::class);

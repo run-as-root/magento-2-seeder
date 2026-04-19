@@ -92,7 +92,7 @@ class MassOrderSeeder implements SeederInterface
 |------------|-------------|-------------------------------------|
 | `customer` | `customer`  | Customer accounts                   |
 | `category` | `category`  | Category tree nodes                 |
-| `product`  | `product`   | Simple products                     |
+| `product`  | `product`   | Products (all five Magento types)   |
 | `order`    | `order`     | Orders via quote-to-order flow      |
 | `cms`      | `cms`       | CMS pages and blocks                |
 
@@ -189,6 +189,42 @@ return [
 
 This triggers the Faker generation pipeline (with dependency resolution) instead of the standard array-based data flow.
 
+## Product Types
+
+The seeder supports all five standard Magento product types. Plain `--generate=product:N` produces a weighted mix; dotted subtypes force a specific type.
+
+### CLI
+
+```
+bin/magento db:seed --generate=product:100
+bin/magento db:seed --generate=product.configurable:20,product.bundle:10
+bin/magento db:seed --generate=product:100,product.bundle:20  # mix + force
+```
+
+### Default weights (for plain `product:N`)
+
+| Subtype       | Weight |
+|---------------|-------:|
+| simple        |    70% |
+| configurable  |    10% |
+| bundle        |    10% |
+| grouped       |     5% |
+| downloadable  |     5% |
+
+Change weights in `src/DataGenerator/ProductDataGenerator.php` — `SUBTYPE_WEIGHTS` constant.
+
+### Per-type behavior
+
+- **Simple**: as before.
+- **Configurable**: auto-creates 6 hidden simple children spanning 3 color options × 2 size options. **Requires** `color` and `size` attributes with option values on the target install — if either is missing or empty, configurable generation fails fast with a clear error. The module does not create attributes.
+- **Bundle**: creates a dynamic-price bundle with up to 3 options (select / radio / checkbox), each linking 2–3 existing simples. Falls back from registry → SEED-% products in DB → warns and skips if the simple pool is empty.
+- **Grouped**: links up to 5 existing simples via `catalog_product_link` (link type 3). Same fallback chain as bundle.
+- **Downloadable**: attaches 1–2 file-type links backed by Faker-generated `.txt` samples under `pub/media/downloadable/files/` and `pub/media/downloadable/files_sample/`.
+
+### Category distribution
+
+Products are assigned to the category with the fewest products so far (ties go to the earliest category). As long as the run produces at least as many products as categories, every category ends up with at least one product.
+
 ### Custom Data Generators
 
 Add your own data generators via `di.xml`:
@@ -204,6 +240,46 @@ Add your own data generators via `di.xml`:
 ```
 
 Your generator must implement `RunAsRoot\Seeder\Api\DataGeneratorInterface`.
+
+## Order States
+
+Orders are generated across the real Magento lifecycle states. Plain `--generate=order:N` produces a weighted mix; dotted subtypes force a specific state.
+
+### CLI
+
+```
+bin/magento db:seed --generate=order:100
+bin/magento db:seed --generate=order.complete:50,order.canceled:10
+bin/magento db:seed --generate=order:100,order.holded:5  # mix + force
+```
+
+### Default state weights
+
+| State        | Weight |
+|--------------|-------:|
+| new          |    15% |
+| processing   |    25% |
+| complete     |    40% |
+| canceled     |    10% |
+| holded       |     5% |
+| closed       |     5% |
+
+Change weights in `src/DataGenerator/OrderDataGenerator.php` — `STATE_WEIGHTS` constant. States `pending_payment` and `payment_review` are intentionally skipped; they require payment-gateway plumbing and add little dev-data value.
+
+### Per-state behavior
+
+- **new**: default state after `CartManagementInterface::placeOrder`. No additional action.
+- **processing**: order is invoiced offline (`InvoiceService::prepareInvoice` + `register` with `CAPTURE_OFFLINE`).
+- **complete**: invoice (as above), then full shipment via `ShipmentFactory::create($order, $itemQtyMap)` + `register`.
+- **canceled**: `$order->cancel()`.
+- **holded**: `$order->hold()`.
+- **closed**: invoice, then offline refund via `CreditmemoFactory::createByOrder` + `CreditmemoManagementInterface::refund($memo, true)`.
+
+After each invoice-based transition, the order state is explicitly set and saved a second time because some Magento observer chains reset the state during the transaction save. Without this, invoiced orders would remain stuck at `new`.
+
+### Order items
+
+Seeded orders only use **simple** products as cart items — bundles, configurables, grouped, and downloadables require per-cart option selections that would complicate the seeder. `OrderDataGenerator` declares `product.simple` as its product dependency, so the dependency resolver always produces the right type.
 
 ## License
 

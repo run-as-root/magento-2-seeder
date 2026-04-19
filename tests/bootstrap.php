@@ -30,6 +30,7 @@ if (!class_exists(\Magento\Framework\App\Filesystem\DirectoryList::class)) {
     eval('
         namespace Magento\Framework\App\Filesystem;
         class DirectoryList {
+            public const MEDIA = "media";
             public function getRoot(): string { return ""; }
             public function getPath(string $code): string { return ""; }
         }
@@ -112,6 +113,7 @@ if (!class_exists(\Magento\Framework\Api\SearchCriteriaBuilder::class)) {
         namespace Magento\Framework\Api;
         class SearchCriteriaBuilder {
             public function addFilter(string $field, $value, ?string $conditionType = null): self { return $this; }
+            public function addFilters(array $filters): self { return $this; }
             public function addSortOrder($sortOrder): self { return $this; }
             public function setPageSize(int $pageSize): self { return $this; }
             public function setCurrentPage(int $currentPage): self { return $this; }
@@ -329,6 +331,7 @@ if (!interface_exists(\Magento\Catalog\Api\Data\ProductInterface::class)) {
             public function getWeight(): ?float;
             public function setWeight(float $weight): self;
             public function setCustomAttribute(string $attributeCode, $attributeValue): self;
+            public function setProductLinks(array $links): self;
         }
     ');
 }
@@ -390,9 +393,12 @@ if (!class_exists(\Magento\Catalog\Model\Product::class)) {
             public function getWeight(): ?float { return null; }
             public function setWeight(float $weight): self { return $this; }
             public function setCustomAttribute(string $attributeCode, $attributeValue): self { return $this; }
+            public function setProductLinks(array $links): self { return $this; }
             public function addImageToMediaGallery($file, $mediaAttribute = null, $move = false, $exclude = true): self { return $this; }
             public function setStockData(array $stockData): self { return $this; }
             public function setWebsiteIds(array $websiteIds): self { return $this; }
+            public function setData($key, $value = null): self { return $this; }
+            public function getData($key = "", $index = null) { return null; }
         }
     ');
 }
@@ -413,8 +419,6 @@ if (!class_exists(\Magento\Catalog\Model\Product\Type::class)) {
         class Type {
             public const TYPE_SIMPLE = "simple";
             public const TYPE_BUNDLE = "bundle";
-            public const TYPE_CONFIGURABLE = "configurable";
-            public const TYPE_GROUPED = "grouped";
             public const TYPE_VIRTUAL = "virtual";
         }
     ');
@@ -647,6 +651,35 @@ if (!interface_exists(\Magento\Sales\Api\Data\OrderInterface::class)) {
         interface OrderInterface {
             public function getEntityId(): ?string;
             public function getIncrementId(): ?string;
+            public function getState(): ?string;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Sales\Model\Order::class)) {
+    eval('
+        namespace Magento\Sales\Model;
+        class Order implements \Magento\Sales\Api\Data\OrderInterface {
+            public function getEntityId(): ?string { return null; }
+            public function getIncrementId(): ?string { return null; }
+            public function getState(): ?string { return null; }
+            public function hold(): self { return $this; }
+            public function cancel(): self { return $this; }
+            public function setState(string $state): self { return $this; }
+            public function setStatus(string $status): self { return $this; }
+            public function setIsInProcess(bool $flag): self { return $this; }
+            public function canInvoice(): bool { return true; }
+            public function getAllItems(): array { return []; }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Sales\Model\Order\Item::class)) {
+    eval('
+        namespace Magento\Sales\Model\Order;
+        class Item {
+            public function getItemId() { return null; }
+            public function getQtyOrdered() { return 0.0; }
         }
     ');
 }
@@ -733,6 +766,375 @@ if (!interface_exists(\Magento\Customer\Api\AddressRepositoryInterface::class)) 
         namespace Magento\Customer\Api;
         interface AddressRepositoryInterface {
             public function save(\Magento\Customer\Api\Data\AddressInterface $address): \Magento\Customer\Api\Data\AddressInterface;
+        }
+    ');
+}
+
+// EAV stubs for configurable products
+
+if (!interface_exists(\Magento\Eav\Api\Data\AttributeOptionInterface::class)) {
+    eval('
+        namespace Magento\Eav\Api\Data;
+        interface AttributeOptionInterface {
+            public function getValue(): ?string;
+            public function getLabel(): ?string;
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Eav\Api\Data\AttributeInterface::class)) {
+    eval('
+        namespace Magento\Eav\Api\Data;
+        interface AttributeInterface {
+            public function getAttributeId(): ?int;
+            public function getAttributeCode(): ?string;
+            public function getDefaultFrontendLabel(): ?string;
+            public function getFrontendLabel(): ?string;
+            public function getOptions(): array;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Eav\Model\Config::class)) {
+    eval('
+        namespace Magento\Eav\Model;
+        class Config {
+            public function getAttribute(string $entityType, string $attributeCode): \Magento\Eav\Api\Data\AttributeInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+// ConfigurableProduct stubs
+
+if (!interface_exists(\Magento\ConfigurableProduct\Api\LinkManagementInterface::class)) {
+    eval('
+        namespace Magento\ConfigurableProduct\Api;
+        interface LinkManagementInterface {
+            public function setChildren(string $sku, array $childSkus): bool;
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\ConfigurableProduct\Api\Data\OptionValueInterface::class)) {
+    eval('
+        namespace Magento\ConfigurableProduct\Api\Data;
+        interface OptionValueInterface {
+            public function setValueIndex($id): self;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\ConfigurableProduct\Api\Data\OptionValueInterfaceFactory::class)) {
+    eval('
+        namespace Magento\ConfigurableProduct\Api\Data;
+        class OptionValueInterfaceFactory {
+            public function create(array $data = []): OptionValueInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\ConfigurableProduct\Api\Data\OptionInterface::class)) {
+    eval('
+        namespace Magento\ConfigurableProduct\Api\Data;
+        interface OptionInterface {
+            public function setAttributeId(int $id): self;
+            public function setLabel(string $label): self;
+            public function setPosition(int $pos): self;
+            public function setIsUseDefault(bool $b): self;
+            public function setValues(array $values): self;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\ConfigurableProduct\Api\Data\OptionInterfaceFactory::class)) {
+    eval('
+        namespace Magento\ConfigurableProduct\Api\Data;
+        class OptionInterfaceFactory {
+            public function create(array $data = []): OptionInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\ConfigurableProduct\Api\OptionRepositoryInterface::class)) {
+    eval('
+        namespace Magento\ConfigurableProduct\Api;
+        interface OptionRepositoryInterface {
+            public function save(string $sku, \Magento\ConfigurableProduct\Api\Data\OptionInterface $option): int;
+        }
+    ');
+}
+
+// Bundle product stubs
+
+if (!interface_exists(\Magento\Bundle\Api\Data\OptionInterface::class)) {
+    eval('
+        namespace Magento\Bundle\Api\Data;
+        interface OptionInterface {
+            public function setTitle(string $title): self;
+            public function setType(string $type): self;
+            public function setRequired(bool $required): self;
+            public function setSku(string $sku): self;
+            public function setPosition(int $position): self;
+            public function getOptionId();
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Bundle\Api\Data\OptionInterfaceFactory::class)) {
+    eval('
+        namespace Magento\Bundle\Api\Data;
+        class OptionInterfaceFactory {
+            public function create(array $data = []): OptionInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Bundle\Api\Data\LinkInterface::class)) {
+    eval('
+        namespace Magento\Bundle\Api\Data;
+        interface LinkInterface {
+            public function setSku(string $sku): self;
+            public function setQty($qty): self;
+            public function setPriceType(int $priceType): self;
+            public function setPrice($price): self;
+            public function setIsDefault(bool $isDefault): self;
+            public function setCanChangeQuantity(int $canChangeQuantity): self;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Bundle\Api\Data\LinkInterfaceFactory::class)) {
+    eval('
+        namespace Magento\Bundle\Api\Data;
+        class LinkInterfaceFactory {
+            public function create(array $data = []): LinkInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Bundle\Api\ProductOptionRepositoryInterface::class)) {
+    eval('
+        namespace Magento\Bundle\Api;
+        interface ProductOptionRepositoryInterface {
+            public function save(\Magento\Catalog\Api\Data\ProductInterface $product, \Magento\Bundle\Api\Data\OptionInterface $option): int;
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Bundle\Api\ProductLinkManagementInterface::class)) {
+    eval('
+        namespace Magento\Bundle\Api;
+        interface ProductLinkManagementInterface {
+            public function addChild(\Magento\Catalog\Api\Data\ProductInterface $product, int $optionId, \Magento\Bundle\Api\Data\LinkInterface $link): int;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Framework\Api\Filter::class)) {
+    eval('
+        namespace Magento\Framework\Api;
+        class Filter {}
+    ');
+}
+
+if (!class_exists(\Magento\Framework\Api\FilterBuilder::class)) {
+    eval('
+        namespace Magento\Framework\Api;
+        class FilterBuilder {
+            public function setField(string $field): self { return $this; }
+            public function setValue($value): self { return $this; }
+            public function setConditionType(string $conditionType): self { return $this; }
+            public function create(): Filter { return new Filter(); }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Catalog\Api\Data\ProductLinkInterface::class)) {
+    eval('
+        namespace Magento\Catalog\Api\Data;
+        interface ProductLinkInterface {
+            public function setSku(string $sku): self;
+            public function setLinkedProductSku(string $linkedProductSku): self;
+            public function setLinkType(string $linkType): self;
+            public function setPosition(int $position): self;
+            public function setLinkedProductType(string $linkedProductType): self;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Catalog\Api\Data\ProductLinkInterfaceFactory::class)) {
+    eval('
+        namespace Magento\Catalog\Api\Data;
+        class ProductLinkInterfaceFactory {
+            public function create(array $data = []): ProductLinkInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+// Downloadable product stubs
+
+if (!interface_exists(\Magento\Downloadable\Api\Data\File\ContentInterface::class)) {
+    eval('
+        namespace Magento\Downloadable\Api\Data\File;
+        interface ContentInterface {
+            public function setFileData(string $fileData): self;
+            public function setName(string $name): self;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Downloadable\Api\Data\File\ContentInterfaceFactory::class)) {
+    eval('
+        namespace Magento\Downloadable\Api\Data\File;
+        class ContentInterfaceFactory {
+            public function create(array $data = []): ContentInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Downloadable\Api\Data\LinkInterface::class)) {
+    eval('
+        namespace Magento\Downloadable\Api\Data;
+        interface LinkInterface {
+            public function setTitle(string $title): self;
+            public function setPrice(float $price): self;
+            public function setIsShareable(int $isShareable): self;
+            public function setNumberOfDownloads(int $numberOfDownloads): self;
+            public function setSortOrder(int $sortOrder): self;
+            public function setLinkType(string $linkType): self;
+            public function setLinkFile(string $linkFile): self;
+            public function setSampleType(string $sampleType): self;
+            public function setSampleFile(string $sampleFile): self;
+            public function setLinkFileContent(\Magento\Downloadable\Api\Data\File\ContentInterface $content): self;
+            public function setSampleFileContent(\Magento\Downloadable\Api\Data\File\ContentInterface $content): self;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Downloadable\Api\Data\LinkInterfaceFactory::class)) {
+    eval('
+        namespace Magento\Downloadable\Api\Data;
+        class LinkInterfaceFactory {
+            public function create(array $data = []): LinkInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Downloadable\Api\LinkRepositoryInterface::class)) {
+    eval('
+        namespace Magento\Downloadable\Api;
+        interface LinkRepositoryInterface {
+            public function save(string $sku, \Magento\Downloadable\Api\Data\LinkInterface $link, bool $isGlobalScopeContent = true): int;
+        }
+    ');
+}
+
+// Invoice / Transaction stubs for order state transitions
+
+if (!class_exists(\Magento\Sales\Model\Order\Invoice::class)) {
+    eval('
+        namespace Magento\Sales\Model\Order;
+        class Invoice {
+            public const CAPTURE_OFFLINE = "offline";
+            public function setRequestedCaptureCase(string $case): self { return $this; }
+            public function register(): self { return $this; }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Sales\Model\Service\InvoiceService::class)) {
+    eval('
+        namespace Magento\Sales\Model\Service;
+        class InvoiceService {
+            public function prepareInvoice(\Magento\Sales\Api\Data\OrderInterface $order, array $qtys = []): \Magento\Sales\Model\Order\Invoice {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Framework\DB\Transaction::class)) {
+    eval('
+        namespace Magento\Framework\DB;
+        class Transaction {
+            public function addObject($object): self { return $this; }
+            public function save(): self { return $this; }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Framework\DB\TransactionFactory::class)) {
+    eval('
+        namespace Magento\Framework\DB;
+        class TransactionFactory {
+            public function create(array $data = []): \Magento\Framework\DB\Transaction {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Sales\Model\Order\Shipment::class)) {
+    eval('
+        namespace Magento\Sales\Model\Order;
+        class Shipment {
+            public function register(): self { return $this; }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Sales\Model\Order\ShipmentFactory::class)) {
+    eval('
+        namespace Magento\Sales\Model\Order;
+        class ShipmentFactory {
+            public function create(\Magento\Sales\Api\Data\OrderInterface $order, array $items = [], $tracks = []): \Magento\Sales\Model\Order\Shipment {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Sales\Model\Order\Creditmemo::class)) {
+    eval('
+        namespace Magento\Sales\Model\Order;
+        class Creditmemo {
+            public function getId() { return null; }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Sales\Model\Order\CreditmemoFactory::class)) {
+    eval('
+        namespace Magento\Sales\Model\Order;
+        class CreditmemoFactory {
+            public function createByOrder(\Magento\Sales\Api\Data\OrderInterface $order, array $data = []): \Magento\Sales\Model\Order\Creditmemo {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Sales\Api\CreditmemoManagementInterface::class)) {
+    eval('
+        namespace Magento\Sales\Api;
+        interface CreditmemoManagementInterface {
+            public function refund(\Magento\Sales\Model\Order\Creditmemo $creditmemo, bool $offlineRequested = false): \Magento\Sales\Model\Order\Creditmemo;
         }
     ');
 }

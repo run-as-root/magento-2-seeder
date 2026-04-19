@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace RunAsRoot\Seeder\EntityHandler;
 
 use RunAsRoot\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\EntityHandler\Order\StateTransitionPool;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Quote\Api\CartItemRepositoryInterface;
 use Magento\Quote\Api\CartManagementInterface;
@@ -23,6 +24,7 @@ class OrderHandler implements EntityHandlerInterface
         private readonly OrderRepositoryInterface $orderRepository,
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
         private readonly StoreManagerInterface $storeManager,
+        private readonly StateTransitionPool $transitionPool,
     ) {
     }
 
@@ -75,7 +77,13 @@ class OrderHandler implements EntityHandlerInterface
         $quote->collectTotals();
         $this->cartRepository->save($quote);
 
-        $this->cartManagement->placeOrder($cartId);
+        $orderId = $this->cartManagement->placeOrder($cartId);
+
+        $state = $data['order_state'] ?? 'new';
+        if ($this->transitionPool->has($state)) {
+            $order = $this->orderRepository->get((int) $orderId);
+            $this->transitionPool->get($state)->apply($order, $data);
+        }
     }
 
     public function clean(): void
