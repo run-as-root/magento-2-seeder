@@ -60,6 +60,7 @@
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="seeder_db_seed" xsi:type="object">RunAsRoot\Seeder\Console\Command\SeedCommand</item>
+                <item name="seeder_db_seed_status" xsi:type="object">RunAsRoot\Seeder\Console\Command\SeedStatusCommand</item>
             </argument>
         </arguments>
     </type>

@@ -1199,4 +1199,51 @@ if (!class_exists(\Magento\Review\Model\RatingFactory::class)) {
     ');
 }
 
+if (!class_exists(\Magento\Framework\DB\Select::class)) {
+    eval('
+        namespace Magento\Framework\DB;
+        class Select {
+            public function from($table, $columns = "*") { return $this; }
+            public function join($table, $condition, $columns = "*") { return $this; }
+            public function where(string $cond, $value = null) { return $this; }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\Framework\DB\Adapter\AdapterInterface::class)) {
+    eval('
+        namespace Magento\Framework\DB\Adapter;
+        interface AdapterInterface {
+            public function select(): \Magento\Framework\DB\Select;
+            public function fetchCol($select, $bind = []): array;
+            public function fetchOne($select, $bind = []);
+            public function delete(string $table, $where = ""): int;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Framework\App\ResourceConnection::class)) {
+    eval('
+        namespace Magento\Framework\App;
+        class ResourceConnection {
+            public function getConnection(string $resourceName = "default"): \Magento\Framework\DB\Adapter\AdapterInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+            public function getTableName(string $modelEntity, string $connectionName = "default"): string {
+                return $modelEntity;
+            }
+        }
+    ');
+}
+
+if (!class_exists(\Zend_Db_Expr::class)) {
+    eval('
+        class Zend_Db_Expr {
+            private string $expr;
+            public function __construct(string $expr) { $this->expr = $expr; }
+            public function __toString(): string { return $this->expr; }
+        }
+    ');
+}
+
 require dirname(__DIR__) . '/vendor/autoload.php';

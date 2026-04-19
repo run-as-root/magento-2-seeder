@@ -126,6 +126,8 @@ class ProductHandler implements EntityHandlerInterface
 
     public function clean(): void
     {
+        $this->reviewCreator->cleanSeedReviews();
+
         $searchCriteria = $this->searchCriteriaBuilder->setPageSize(10000)->create();
         $products = $this->productRepository->getList($searchCriteria);
 
