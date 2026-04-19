@@ -11,9 +11,10 @@
     <!-- Default path to scan; CLI path (e.g. `phpcs .`) overrides this -->
     <file>src</file>
 
-    <!-- Never sniff third-party code or test fixtures, even if CLI passes `.` -->
+    <!-- Never sniff third-party code, test fixtures, or docs-as-code examples -->
     <exclude-pattern>*/vendor/*</exclude-pattern>
     <exclude-pattern>*/Test/*</exclude-pattern>
+    <exclude-pattern>*/examples/*</exclude-pattern>
 
     <rule ref="Magento2">
         <!-- Exclude overly strict rules that don't apply to a dev-only module -->

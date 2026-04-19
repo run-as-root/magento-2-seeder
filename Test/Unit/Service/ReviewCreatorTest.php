@@ -28,7 +28,6 @@ final class ReviewCreatorTest extends TestCase
         return $this->getMockBuilder(Review::class)
             ->disableOriginalConstructor()
             ->addMethods([
-                'setEntityId',
                 'setEntityPkValue',
                 'setStatusId',
                 'setTitle',
@@ -37,7 +36,7 @@ final class ReviewCreatorTest extends TestCase
                 'setStoreId',
                 'setStores',
             ])
-            ->onlyMethods(['save', 'getId', 'getEntityIdByCode'])
+            ->onlyMethods(['save', 'getId', 'getEntityIdByCode', 'setEntityId'])
             ->getMock();
     }
 
