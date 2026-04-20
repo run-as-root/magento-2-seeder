@@ -3,7 +3,7 @@
 [![CI](https://github.com/run-as-root/magento-2-seeder/actions/workflows/ci.yml/badge.svg)](https://github.com/run-as-root/magento-2-seeder/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Laravel-style database seeding for Magento 2 / Mage-OS. Define simple PHP / JSON / YAML files (or use the built-in Faker generators), run `bin/magento db:seed`, populate your dev environment with realistic products, categories, customers, orders, CMS content, and reviews.
+Laravel-style database seeding for Magento 2 / Mage-OS. Define simple PHP / JSON / YAML files (or use the built-in Faker generators), run `bin/magento db:seed`, populate your dev environment with realistic products, categories, customers, orders, CMS content, reviews, cart rules, wishlists, and newsletter subscribers.
 
 ## Installation
 
@@ -174,16 +174,16 @@ class CustomSeeder implements SeederInterface
 
 ## Supported Entity Types
 
-| Type       | Key          | What it creates                     |
-|------------|-------------|-------------------------------------|
-| `customer`             | `customer`             | Customer accounts                                           |
-| `category`             | `category`             | Category tree nodes                                         |
-| `product`              | `product`              | Products (all five Magento types)                           |
-| `order`                | `order`                | Orders via quote-to-order flow                              |
-| `cms`                  | `cms`                  | CMS pages and blocks                                        |
-| `cart_rule`            | `cart_rule`            | Shopping-cart price rules with a specific coupon each       |
-| `wishlist`             | `wishlist`             | Wishlists with 1–5 product items per seeded customer        |
-| `newsletter_subscriber`| `newsletter_subscriber`| Newsletter subscribers (50/50 linked customers vs guests)   |
+| Type                    | What it creates                                        |
+|-------------------------|--------------------------------------------------------|
+| `customer`              | Customer accounts                                      |
+| `category`              | Category tree nodes                                    |
+| `product`               | Products (all five Magento types)                      |
+| `order`                 | Orders via quote-to-order flow                         |
+| `cms`                   | CMS pages and blocks                                   |
+| `cart_rule`             | Shopping-cart price rules with a specific coupon each  |
+| `wishlist`              | Wishlists with 1–5 product items per seeded customer   |
+| `newsletter_subscriber` | Newsletter subscribers (50/50 linked customers vs guests) |
 
 ## Default Seeding Order
 
@@ -263,13 +263,16 @@ You only need to request the entities you want. Dependencies are auto-generated 
 
 For example, `--generate=order:1000` will also generate the required customers, products, and categories automatically.
 
-| Requested       | Auto-generates                                                                           |
-|-----------------|------------------------------------------------------------------------------------------|
-| `order:1000`    | `customer:200` (1:5 ratio), `product:50` (1:20 ratio), `category:10` (1:5 of products)  |
-| `product:100`   | `category:20` (1:5 ratio)                                                                |
-| `customer:500`  | Nothing (no dependencies)                                                                |
-| `category:50`   | Nothing (no dependencies)                                                                |
-| `cms:20`        | Nothing (no dependencies)                                                                |
+| Requested                    | Auto-generates                                                                          |
+|------------------------------|-----------------------------------------------------------------------------------------|
+| `order:1000`                 | `customer:200` (1:5 ratio), `product:50` (1:20 ratio), `category:10` (1:5 of products)  |
+| `product:100`                | `category:20` (1:5 ratio)                                                               |
+| `wishlist:50`                | `customer:50` (1:1 ratio); products reused from whatever's in the DB/registry           |
+| `customer:500`               | Nothing (no dependencies)                                                               |
+| `category:50`                | Nothing (no dependencies)                                                               |
+| `cms:20`                     | Nothing (no dependencies)                                                               |
+| `cart_rule:20`               | Nothing (no dependencies)                                                               |
+| `newsletter_subscriber:100`  | Nothing — links to customers already in the registry, falls back to guest emails       |
 
 If you explicitly request a dependency type, your count takes precedence over the auto-calculated one.
 
@@ -386,6 +389,75 @@ After each invoice-based transition, the order state is explicitly set and saved
 ### Order items
 
 Seeded orders only use **simple** products as cart items — bundles, configurables, grouped, and downloadables require per-cart option selections that would complicate the seeder. `OrderDataGenerator` declares `product.simple` as its product dependency, so the dependency resolver always produces the right type.
+
+## Cart Rules
+
+Plain `--generate=cart_rule:N` creates N sales rules, each with one attached manual-code coupon.
+
+### CLI
+
+```
+bin/magento db:seed --generate=cart_rule:20
+```
+
+### Action mix
+
+| simple_action   | Weight | Discount amount              | Coupon prefix |
+|-----------------|-------:|-----------------------------|---------------|
+| `by_percent`    |   60%  | 5–30 (percent off)           | `SAVE`        |
+| `by_fixed`      |   30%  | 5–50 (fixed currency off)    | `DEAL`        |
+| `free_shipping` |   10%  | n/a (sets FREE_SHIPPING_ITEM)| `PROMO`       |
+
+Change weights in `src/DataGenerator/CartRuleDataGenerator.php` — `ACTION_WEIGHTS` constant.
+
+### Rule shape
+
+- Active for all websites (id 1) and all four default customer groups (NOT LOGGED IN + General + Wholesale + Retailer).
+- Empty conditions tree — applies to every cart.
+- `to_date` = today + 1 year. No `from_date` restriction.
+- Rule name: `Seed Rule — <two Faker words>` so `--fresh` can scope cleanup.
+- Coupon code: `<PREFIX><amount>-<6 uppercase alnum>`, e.g. `SAVE12-AB1234`. Collision retry with a random suffix, up to 3 attempts.
+
+## Wishlists
+
+Plain `--generate=wishlist:N` creates one wishlist per seeded customer, each with 1–5 randomly-picked products.
+
+### CLI
+
+```
+bin/magento db:seed --generate=wishlist:50
+```
+
+Requires at least 1 customer and 1 product in the registry (auto-generated per the dependency resolver — see the table above).
+
+### Items
+
+- `qty` = 1, `shared` = 0.
+- Items are inserted directly into `wishlist_item`, bypassing `Wishlist::addNewItem`'s stock guard. This keeps the seeder resilient to freshly-seeded products whose stock index hasn't caught up yet. Tradeoff: only simple products are exercised today — configurable / bundle wishlist items would need the full `addNewItem` option-serialization path.
+
+### Cleanup
+
+`--fresh` scopes wishlist cleanup to customers whose email matches `%@example.%` (Faker's `safeEmail()` domain). `wishlist_item` rows cascade via FK.
+
+## Newsletter Subscribers
+
+Plain `--generate=newsletter_subscriber:N` creates N subscriber rows with a roughly 50/50 mix of customer-linked and guest (unlinked) entries.
+
+### CLI
+
+```
+bin/magento db:seed --generate=newsletter_subscriber:100
+```
+
+### Behavior
+
+- If any customers are in the registry, ~half the subscribers reuse their emails + `customer_id`; the other half get guest Faker emails with `customer_id=0`.
+- Each customer is linked at most once per run — dedup is derived from the subscribers already in the registry so state never leaks between runs.
+- Status is always `Subscriber::STATUS_SUBSCRIBED`. Store id 1. `status_changed_at` set to current timestamp.
+
+### Cleanup
+
+`--fresh` scopes cleanup to `subscriber_email LIKE '%@example.%'`. If your install has real users with `@example.*` addresses, they will also match — inline comments in the handler flag this. Prefix your real users off `@example.*` if that's a concern.
 
 ## Performance
 
