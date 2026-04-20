@@ -176,11 +176,14 @@ class CustomSeeder implements SeederInterface
 
 | Type       | Key          | What it creates                     |
 |------------|-------------|-------------------------------------|
-| `customer` | `customer`  | Customer accounts                   |
-| `category` | `category`  | Category tree nodes                 |
-| `product`  | `product`   | Products (all five Magento types)   |
-| `order`    | `order`     | Orders via quote-to-order flow      |
-| `cms`      | `cms`       | CMS pages and blocks                |
+| `customer`             | `customer`             | Customer accounts                                           |
+| `category`             | `category`             | Category tree nodes                                         |
+| `product`              | `product`              | Products (all five Magento types)                           |
+| `order`                | `order`                | Orders via quote-to-order flow                              |
+| `cms`                  | `cms`                  | CMS pages and blocks                                        |
+| `cart_rule`            | `cart_rule`            | Shopping-cart price rules with a specific coupon each       |
+| `wishlist`             | `wishlist`             | Wishlists with 1–5 product items per seeded customer        |
+| `newsletter_subscriber`| `newsletter_subscriber`| Newsletter subscribers (50/50 linked customers vs guests)   |
 
 ## Default Seeding Order
 
@@ -188,7 +191,9 @@ class CustomSeeder implements SeederInterface
 2. Products (20)
 3. Customers (30)
 4. Orders (40)
-5. CMS (50)
+5. CMS / Cart Rules (50)
+6. Wishlists (60)
+7. Newsletter Subscribers (70)
 
 Override with `'order' => 5` in array seeders or `getOrder(): int` in class seeders.
 
@@ -201,8 +206,11 @@ When using `--fresh`, the module cleans existing data before seeding:
 - **Categories**: Deletes all categories except root (ID 1) and default (ID 2)
 - **Orders**: Deletes all orders (FK cascades handle invoices, shipments, etc.)
 - **CMS**: Only deletes pages/blocks with the `seed-` identifier prefix
+- **Cart Rules**: Only deletes rules whose name starts with `Seed Rule — ` (attached coupons cascade)
+- **Wishlists**: Only deletes wishlists whose owner's email matches `%@example.%` (items cascade via FK)
+- **Newsletter Subscribers**: Only deletes rows whose email matches `%@example.%`
 
-Clean runs in reverse dependency order (orders -> products -> categories -> customers -> CMS).
+Clean runs in reverse dependency order (later-ordered types first).
 
 ## Extending
 
