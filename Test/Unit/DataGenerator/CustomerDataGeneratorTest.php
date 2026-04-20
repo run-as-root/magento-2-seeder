@@ -79,4 +79,42 @@ final class CustomerDataGeneratorTest extends TestCase
 
         $this->assertSame(50, count(array_unique($emails)));
     }
+
+    public function test_generate_produces_one_to_three_addresses(): void
+    {
+        $faker = \Faker\Factory::create('en_US');
+        $registry = new GeneratedDataRegistry();
+        $generator = new CustomerDataGenerator();
+
+        $counts = [];
+        for ($i = 0; $i < 200; $i++) {
+            $faker->seed($i);
+            $data = $generator->generate($faker, $registry);
+            $count = count($data['addresses']);
+            $this->assertGreaterThanOrEqual(1, $count, "Seed {$i}: at least 1 address required");
+            $this->assertLessThanOrEqual(3, $count, "Seed {$i}: no more than 3 addresses");
+            $counts[$count] = ($counts[$count] ?? 0) + 1;
+        }
+
+        $this->assertArrayHasKey(1, $counts, '1-address outcomes expected in distribution');
+        $this->assertGreaterThan(10, $counts[2] ?? 0, '2-address outcomes expected');
+        $this->assertGreaterThan(10, $counts[3] ?? 0, '3-address outcomes expected');
+    }
+
+    public function test_generate_first_address_is_default_billing_and_shipping(): void
+    {
+        $faker = \Faker\Factory::create('en_US');
+        $faker->seed(7);
+        $registry = new GeneratedDataRegistry();
+
+        $data = (new CustomerDataGenerator())->generate($faker, $registry);
+
+        $this->assertTrue($data['addresses'][0]['default_billing']);
+        $this->assertTrue($data['addresses'][0]['default_shipping']);
+
+        for ($i = 1, $n = count($data['addresses']); $i < $n; $i++) {
+            $this->assertFalse($data['addresses'][$i]['default_billing']);
+            $this->assertFalse($data['addresses'][$i]['default_shipping']);
+        }
+    }
 }

@@ -25,18 +25,22 @@ class CustomerDataGenerator implements DataGeneratorInterface
         $firstname = $faker->firstName();
         $lastname = $faker->lastName();
 
-        $address = [
-            'firstname' => $firstname,
-            'lastname' => $lastname,
-            'street' => [$faker->streetAddress()],
-            'city' => $faker->city(),
-            'region_id' => $faker->numberBetween(1, 65),
-            'postcode' => $faker->postcode(),
-            'country_id' => 'US',
-            'telephone' => $this->sanitizeTelephone($faker->phoneNumber()),
-            'default_billing' => true,
-            'default_shipping' => true,
-        ];
+        $addressCount = $faker->numberBetween(1, 3);
+        $addresses = [];
+        for ($i = 0; $i < $addressCount; $i++) {
+            $addresses[] = [
+                'firstname' => $firstname,
+                'lastname' => $lastname,
+                'street' => [$faker->streetAddress()],
+                'city' => $faker->city(),
+                'region_id' => $faker->numberBetween(1, 65),
+                'postcode' => $faker->postcode(),
+                'country_id' => 'US',
+                'telephone' => $this->sanitizeTelephone($faker->phoneNumber()),
+                'default_billing' => $i === 0,
+                'default_shipping' => $i === 0,
+            ];
+        }
 
         return [
             'email' => $faker->unique()->safeEmail(),
@@ -44,7 +48,7 @@ class CustomerDataGenerator implements DataGeneratorInterface
             'lastname' => $lastname,
             'password' => 'Test1234!',
             'dob' => $faker->date('Y-m-d', '-18 years'),
-            'addresses' => [$address],
+            'addresses' => $addresses,
         ];
     }
 
