@@ -1214,6 +1214,7 @@ if (!interface_exists(\Magento\Framework\DB\Adapter\AdapterInterface::class)) {
             public function select(): \Magento\Framework\DB\Select;
             public function fetchCol($select, $bind = []): array;
             public function fetchOne($select, $bind = []);
+            public function insert(string $table, array $bind = []): int;
             public function delete(string $table, $where = ""): int;
             public function beginTransaction(): self;
             public function commit(): self;
@@ -1242,6 +1243,176 @@ if (!class_exists(\Zend_Db_Expr::class)) {
             private string $expr;
             public function __construct(string $expr) { $this->expr = $expr; }
             public function __toString(): string { return $this->expr; }
+        }
+    ');
+}
+
+// SalesRule stubs for CartRuleHandler tests
+
+if (!class_exists(\Magento\Framework\Exception\AlreadyExistsException::class)) {
+    eval('
+        namespace Magento\Framework\Exception;
+        class AlreadyExistsException extends \Magento\Framework\Exception\LocalizedException {}
+    ');
+}
+
+if (!interface_exists(\Magento\SalesRule\Api\Data\RuleInterface::class)) {
+    eval('
+        namespace Magento\SalesRule\Api\Data;
+        interface RuleInterface {
+            public function getRuleId();
+            public function setName(string $name): self;
+            public function setDescription(string $description): self;
+            public function setIsActive(bool $isActive): self;
+            public function setWebsiteIds(array $websiteIds): self;
+            public function setCustomerGroupIds(array $customerGroupIds): self;
+            public function setFromDate($fromDate): self;
+            public function setToDate(string $toDate): self;
+            public function setStopRulesProcessing(bool $stopRulesProcessing): self;
+            public function setUsesPerCustomer(int $usesPerCustomer): self;
+            public function setSimpleAction(string $simpleAction): self;
+            public function setDiscountAmount(float $discountAmount): self;
+            public function setDiscountQty(int $discountQty): self;
+            public function setSortOrder(int $sortOrder): self;
+            public function setSimpleFreeShipping(int $simpleFreeShipping): self;
+            public function setCouponType(string $couponType): self;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\SalesRule\Api\Data\RuleInterfaceFactory::class)) {
+    eval('
+        namespace Magento\SalesRule\Api\Data;
+        class RuleInterfaceFactory {
+            public function create(array $data = []): RuleInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\SalesRule\Api\Data\RuleSearchResultInterface::class)) {
+    eval('
+        namespace Magento\SalesRule\Api\Data;
+        interface RuleSearchResultInterface {
+            public function getItems(): array;
+            public function getTotalCount(): int;
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\SalesRule\Api\RuleRepositoryInterface::class)) {
+    eval('
+        namespace Magento\SalesRule\Api;
+        interface RuleRepositoryInterface {
+            public function save(\Magento\SalesRule\Api\Data\RuleInterface $rule): \Magento\SalesRule\Api\Data\RuleInterface;
+            public function getById(int $ruleId): \Magento\SalesRule\Api\Data\RuleInterface;
+            public function getList(\Magento\Framework\Api\SearchCriteriaInterface $searchCriteria): \Magento\SalesRule\Api\Data\RuleSearchResultInterface;
+            public function delete(\Magento\SalesRule\Api\Data\RuleInterface $rule): bool;
+            public function deleteById(int $ruleId): bool;
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\SalesRule\Api\Data\CouponInterface::class)) {
+    eval('
+        namespace Magento\SalesRule\Api\Data;
+        interface CouponInterface {
+            public const TYPE_MANUAL = 0;
+            public const TYPE_GENERATED = 1;
+            public function setRuleId(int $ruleId): self;
+            public function setCode(string $code): self;
+            public function setType(int $type): self;
+            public function setUsageLimit(int $usageLimit): self;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\SalesRule\Api\Data\CouponInterfaceFactory::class)) {
+    eval('
+        namespace Magento\SalesRule\Api\Data;
+        class CouponInterfaceFactory {
+            public function create(array $data = []): CouponInterface {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+if (!interface_exists(\Magento\SalesRule\Api\CouponRepositoryInterface::class)) {
+    eval('
+        namespace Magento\SalesRule\Api;
+        interface CouponRepositoryInterface {
+            public function save(\Magento\SalesRule\Api\Data\CouponInterface $coupon): \Magento\SalesRule\Api\Data\CouponInterface;
+        }
+    ');
+}
+
+if (!class_exists(\Magento\SalesRule\Model\Rule::class)) {
+    eval('
+        namespace Magento\SalesRule\Model;
+        class Rule {
+            public const FREE_SHIPPING_ITEM = 1;
+            public const COUPON_TYPE_NO_COUPON = "NO_COUPON";
+            public const COUPON_TYPE_SPECIFIC = "SPECIFIC_COUPON";
+        }
+    ');
+}
+
+// Wishlist stubs for WishlistHandler tests
+
+if (!class_exists(\Magento\Wishlist\Model\Wishlist::class)) {
+    eval('
+        namespace Magento\Wishlist\Model;
+        class Wishlist {
+            public function loadByCustomerId(int $customerId, bool $create = false): self { return $this; }
+            public function setShared(int $shared): self { return $this; }
+            public function save(): self { return $this; }
+            public function getId() { return null; }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Wishlist\Model\WishlistFactory::class)) {
+    eval('
+        namespace Magento\Wishlist\Model;
+        class WishlistFactory {
+            public function create(array $data = []): Wishlist {
+                throw new \RuntimeException("Stub: not implemented");
+            }
+        }
+    ');
+}
+
+// Newsletter stubs for NewsletterSubscriberHandler tests
+
+if (!class_exists(\Magento\Newsletter\Model\Subscriber::class)) {
+    eval('
+        namespace Magento\Newsletter\Model;
+        class Subscriber {
+            public const STATUS_SUBSCRIBED = 1;
+            public const STATUS_NOT_ACTIVE = 2;
+            public const STATUS_UNSUBSCRIBED = 3;
+            public const STATUS_UNCONFIRMED = 4;
+            public function loadByEmail(string $email): self { return $this; }
+            public function getId() { return null; }
+            public function setEmail(string $email): self { return $this; }
+            public function setStoreId(int $storeId): self { return $this; }
+            public function setStatus(int $status): self { return $this; }
+            public function setCustomerId(int $customerId): self { return $this; }
+            public function setStatusChangedAt(string $dateTime): self { return $this; }
+            public function save(): self { return $this; }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Newsletter\Model\SubscriberFactory::class)) {
+    eval('
+        namespace Magento\Newsletter\Model;
+        class SubscriberFactory {
+            public function create(array $data = []): Subscriber {
+                throw new \RuntimeException("Stub: not implemented");
+            }
         }
     ');
 }
