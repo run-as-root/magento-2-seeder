@@ -19,6 +19,7 @@
         "magento/module-quote": "*",
         "magento/module-sales": "*",
         "magento/module-sales-rule": "*",
+        "magento/module-wishlist": "*",
         "fakerphp/faker": "^1.23",
         "symfony/yaml": "^6.0 || ^7.0"
     },
@@ -66,7 +67,8 @@
                 {"name": "magento/module-newsletter", "version": "999.999.999", "type": "metapackage"},
                 {"name": "magento/module-quote", "version": "999.999.999", "type": "metapackage"},
                 {"name": "magento/module-sales", "version": "999.999.999", "type": "metapackage"},
-                {"name": "magento/module-sales-rule", "version": "999.999.999", "type": "metapackage"}
+                {"name": "magento/module-sales-rule", "version": "999.999.999", "type": "metapackage"},
+                {"name": "magento/module-wishlist", "version": "999.999.999", "type": "metapackage"}
             ]
         }
     },
