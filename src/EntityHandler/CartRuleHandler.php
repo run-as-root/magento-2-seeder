@@ -93,11 +93,12 @@ class CartRuleHandler implements EntityHandlerInterface
                 $this->couponRepository->save($coupon);
                 return;
             } catch (\Magento\Framework\Exception\AlreadyExistsException $e) {
+                $lastError = $e;
                 $couponData['code'] = $couponData['code'] . '-' . strtoupper(bin2hex(random_bytes(2)));
                 $attempts++;
             }
         } while ($attempts < 3);
 
-        throw new \RuntimeException('Could not create unique coupon code after 3 retries');
+        throw new \RuntimeException('Could not create unique coupon code after 3 retries', 0, $lastError);
     }
 }
