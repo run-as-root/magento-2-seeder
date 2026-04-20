@@ -135,11 +135,13 @@ final class ProductHandlerTest extends TestCase
         $imageDownloader = $this->createMock(ImageDownloader::class);
         $imageDownloader->expects($this->once())
             ->method('download')
-            ->with('https://example.com/img.jpg', $this->stringContains('pub/media/catalog/product/import'))
+            ->with('https://example.com/img.jpg', $this->stringContains('/catalog/product/import'))
             ->willReturn('seed_abc.jpg');
 
         $directoryList = $this->createMock(DirectoryList::class);
-        $directoryList->method('getRoot')->willReturn('/var/www/html');
+        $directoryList->method('getPath')
+            ->with(DirectoryList::MEDIA)
+            ->willReturn('/var/www/html/pub/media');
 
         $product->expects($this->once())
             ->method('addImageToMediaGallery')
@@ -196,7 +198,9 @@ final class ProductHandlerTest extends TestCase
         $imageDownloader->method('download')->willReturn(null);
 
         $directoryList = $this->createMock(DirectoryList::class);
-        $directoryList->method('getRoot')->willReturn('/var/www/html');
+        $directoryList->method('getPath')
+            ->with(DirectoryList::MEDIA)
+            ->willReturn('/var/www/html/pub/media');
 
         $factory = $this->createMock(ProductInterfaceFactory::class);
         $factory->method('create')->willReturn($product);

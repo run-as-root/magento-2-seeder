@@ -86,7 +86,10 @@ class ProductHandler implements EntityHandlerInterface
         }
 
         if (isset($data['image_url'])) {
-            $importDir = $this->directoryList->getRoot() . '/pub/media/catalog/product/import';
+            // Use the configured media directory instead of hard-coding pub/media, so that
+            // sandboxed Magento installs (e.g. the integration test framework) that remap
+            // DirectoryList::MEDIA still produce addImageToMediaGallery-compatible paths.
+            $importDir = $this->directoryList->getPath(DirectoryList::MEDIA) . '/catalog/product/import';
             $filename = $this->imageDownloader->download($data['image_url'], $importDir);
             if ($filename !== null && method_exists($product, 'addImageToMediaGallery')) {
                 $product->addImageToMediaGallery(
