@@ -44,7 +44,7 @@ class WishlistHandler implements EntityHandlerInterface
             $connection->insert($itemTable, [
                 'wishlist_id' => $wishlistId,
                 'product_id' => (int) $product->getId(),
-                'store_id' => (int) ($itemData['store_id'] ?? $product->getStoreId() ?? 1),
+                'store_id' => (int) ($itemData['store_id'] ?? ($product->getStoreId() ?: 1)),
                 'added_at' => date('Y-m-d H:i:s'),
                 'description' => null,
                 'qty' => (float) ($itemData['qty'] ?? 1),
