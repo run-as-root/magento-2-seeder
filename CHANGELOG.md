@@ -5,6 +5,40 @@ All notable changes to `runasroot/module-seeder` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-04-20
+
+### Added
+
+- Three new entity types: `cart_rule`, `wishlist`, `newsletter_subscriber` — each with a `DataGenerator` + `EntityHandler` pair. Reachable via `--generate=cart_rule:N`, `--generate=wishlist:N`, `--generate=newsletter_subscriber:N`, or the fluent `seed('<type>')` builder entry.
+- `CartRuleDataGenerator` — weighted action mix of `by_percent` (60%) / `by_fixed` (30%) / `free_shipping` (10%). Each rule gets one attached manual coupon with code format `<PREFIX><amount>-<6 uppercase alnum>`, active for all websites + all four default customer groups, expires in 1 year, applies to all carts (empty condition tree).
+- `WishlistDataGenerator` — one wishlist per seeded customer with 1–5 random products. Declares `customer:N` as dependency so `--generate=wishlist:50` auto-seeds 50 customers. Handler inserts into `wishlist_item` directly to sidestep stock-index race conditions on freshly seeded products.
+- `NewsletterSubscriberDataGenerator` — 50/50 mix of customer-linked subscribers (email reused from registry) and guest emails. Dedup of linked customers derived from registry state so state never leaks between runs.
+- `CustomerDataGenerator` now emits 1–3 addresses per customer (first remains default billing/shipping, extras are non-default).
+- `Test/Integration/NewEntityTypesSmokeTest` — integration smoke coverage for all three new types against a real Mage-OS install (rules + coupons created, subscribers split linked/guest, wishlists + items + qty verified).
+- 23 new unit tests covering handler branches: `CartRuleHandlerTest` (retry loop on coupon collision, free_shipping branch, cleanup filter), `WishlistHandlerTest` (direct-insert bind columns, store_id fallback, customer-scoped cleanup), `NewsletterSubscriberHandlerTest` (load-or-merge, default coalesce, cleanup).
+- README sections documenting Cart Rules, Wishlists, and Newsletter Subscribers (CLI, action/behavior mix, cleanup scope).
+
+### Changed
+
+- `src/etc/di.xml`: all `EntityHandlerPool` and `DataGeneratorPool` items now wire through `\Proxy`. `bin/magento setup:install` was eagerly instantiating EAV-touching handlers (Customer, Product) before the schema existed, crashing with `TableNotFoundException: eav_entity_type`. Proxies defer construction to first use — idiomatic for handler pools behind console commands.
+
+### Fixed
+
+- `ProductHandler` resolves the image import directory via `DirectoryList::getPath(DirectoryList::MEDIA)` instead of hard-coded `getRoot() . '/pub/media/...'`. Sandboxed installs that remap `MEDIA` (split-pub deployments, integration test harness) no longer fail PathValidator checks.
+
+### Installation
+
+```bash
+composer require runasroot/module-seeder:^1.2
+bin/magento setup:upgrade
+```
+
+Fully backward compatible with 1.1.x — no public API changes. Adds three new composer requires (`magento/module-sales-rule`, `magento/module-wishlist`, `magento/module-newsletter`) which every modern Magento 2 / Mage-OS install already ships with.
+
+### Contributors
+
+- @DavidLambauer — entire release
+
 ## [1.1.0] - 2026-04-20
 
 ### Added
@@ -84,5 +118,6 @@ bin/magento setup:di:compile
 
 - @DavidLambauer — entire release
 
+[1.2.0]: https://github.com/run-as-root/magento-2-seeder/releases/tag/v1.2.0
 [1.1.0]: https://github.com/run-as-root/magento-2-seeder/releases/tag/v1.1.0
 [1.0.0]: https://github.com/run-as-root/magento-2-seeder/releases/tag/v1.0.0
