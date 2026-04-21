@@ -102,4 +102,23 @@ final class SeederFileBuilderTest extends TestCase
 
         (new SeederFileBuilder())->build('order', 1, 'en_US', null, 'toml');
     }
+
+    public function test_php_output_is_consumable_by_array_seeder_adapter(): void
+    {
+        $builder = new SeederFileBuilder();
+        $content = $builder->build('order', 3, 'en_US', 99, 'php');
+
+        $path = tempnam(sys_get_temp_dir(), 'seeder-');
+        file_put_contents($path, $content);
+
+        try {
+            $config = require $path;
+            $this->assertIsArray($config);
+            $this->assertSame('order', $config['type']);
+            $this->assertSame(3, $config['count']);
+            $this->assertSame(99, $config['seed']);
+        } finally {
+            unlink($path);
+        }
+    }
 }
