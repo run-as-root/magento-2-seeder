@@ -21,8 +21,9 @@ final class SeederRunnerTest extends TestCase
 {
     protected function setUp(): void
     {
-        // Non-TTY environments: spin() falls back to renderStatically which
-        // still executes the callback. Prompt::fake() avoids terminal noise.
+        // Belt-and-suspenders: SeederRunner skips spin() when stdout isn't a
+        // TTY (the usual case under PHPUnit), so Prompt::fake() is a
+        // fail-safe in case any code path still reaches into prompts.
         Prompt::fake();
     }
 
@@ -245,6 +246,45 @@ final class SeederRunnerTest extends TestCase
         $this->assertTrue($ran, 'spin() should execute the seeder callback');
         $this->assertCount(1, $results);
         $this->assertTrue($results[0]['success']);
+    }
+
+    public function test_non_tty_non_adapter_seeder_runs_without_spin(): void
+    {
+        // PHPUnit runs with stdout redirected (not a TTY), so the TTY guard
+        // in SeederRunner::runWithFeedback() should bypass spin() entirely.
+        // Output capture verifies no ANSI escape bytes leak through (which
+        // would be the symptom of spin() rendering into a logfile in CI).
+        $this->assertFalse(
+            stream_isatty(STDOUT),
+            'Precondition: PHPUnit should not be attached to a TTY.',
+        );
+
+        $ran = false;
+        $seeder = $this->createSeederMock('custom', 10, function () use (&$ran): void {
+            $ran = true;
+        });
+
+        $discovery = $this->createMock(SeederDiscovery::class);
+        $discovery->method('discover')->willReturn([$seeder]);
+
+        $runner = new SeederRunner(
+            $discovery,
+            new EntityHandlerPool([]),
+            $this->createMock(LoggerInterface::class),
+        );
+
+        ob_start();
+        $results = $runner->run(new SeederRunConfig());
+        $output = (string) ob_get_clean();
+
+        $this->assertTrue($ran, 'Seeder callback must still execute in non-TTY mode.');
+        $this->assertCount(1, $results);
+        $this->assertTrue($results[0]['success']);
+        $this->assertStringNotContainsString(
+            "\x1b[",
+            $output,
+            'Non-TTY run must not emit ANSI escape sequences.',
+        );
     }
 
     private function createSeederMock(string $type, int $order, ?\Closure $runCallback = null): SeederInterface

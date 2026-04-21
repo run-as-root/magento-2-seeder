@@ -62,10 +62,33 @@ class SeederRunner
             return;
         }
 
+        $this->runWithFeedback($seeder);
+    }
+
+    /**
+     * Runs a non-count seeder with user feedback when attached to a TTY,
+     * or silently when stdout is redirected (CI, cron, piped output).
+     *
+     * Guarding on {@see stream_isatty()} prevents Laravel Prompts' spinner
+     * from emitting ANSI escape sequences into log files.
+     */
+    private function runWithFeedback(SeederInterface $seeder): void
+    {
+        if (!$this->isStdoutTty()) {
+            $seeder->run();
+
+            return;
+        }
+
         \Laravel\Prompts\spin(
             static fn () => $seeder->run(),
             sprintf('Seeding %s', $seeder->getType()),
         );
+    }
+
+    private function isStdoutTty(): bool
+    {
+        return defined('STDOUT') && stream_isatty(STDOUT);
     }
 
     /**
