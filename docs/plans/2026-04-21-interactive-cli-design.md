@@ -200,3 +200,4 @@ file_put_contents + note() + outro()
 
 - README update: document `db:seed:make` in the Quick Start section, so the "empty dir" hint lands users somewhere documented.
 - CHANGELOG entry for the minor release that ships this.
+- Migrate SeedStatusCommand output to Laravel Prompts table().
