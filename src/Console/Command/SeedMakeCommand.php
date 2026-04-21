@@ -61,37 +61,81 @@ class SeedMakeCommand extends Command
             return Command::FAILURE;
         }
 
-        $type = (string) $rawType;
-        if ($isInteractive && ($rawType === null || $rawType === '')) {
-            $type = (string) \Laravel\Prompts\select(
-                label: 'Entity type',
-                options: array_combine(
-                    array_keys($this->generatorPool->getAll()),
-                    array_keys($this->generatorPool->getAll()),
-                ),
-            );
+        // 1. Resolve entity types (multi-select in interactive mode; single from flag otherwise).
+        /** @var string[] $types */
+        $types = [];
+        if ($rawType !== null && $rawType !== '') {
+            $types = [(string) $rawType];
+        } elseif ($isInteractive) {
+            $types = $this->promptForTypes();
         }
 
-        $name = (string) ($rawName !== null && $rawName !== '' ? $rawName : $this->defaultName($type));
-        if ($isInteractive && ($rawName === null || $rawName === '')) {
-            $name = \Laravel\Prompts\text(
-                label: 'File name',
-                default: $this->defaultName($type),
-                validate: fn (string $v) => str_ends_with($v, 'Seeder') ? null : 'Name must end in "Seeder"',
-            );
+        if ($types === []) {
+            $output->writeln('<error>At least one entity type is required.</error>');
+            return Command::FAILURE;
         }
 
-        $count = (int) $rawCount;
-        if ($isInteractive && ($rawCount === null || $rawCount === '')) {
-            $count = (int) \Laravel\Prompts\text(
-                label: 'How many?',
-                default: '10',
-                validate: fn (string $v) => (ctype_digit($v) && (int) $v > 0)
-                    ? null
-                    : 'Count must be a positive integer',
-            );
+        foreach ($types as $t) {
+            if (!$this->generatorPool->has($t)) {
+                $available = implode(', ', array_keys($this->generatorPool->getAll()));
+                $output->writeln(sprintf(
+                    '<error>Unknown type "%s". Available: %s</error>',
+                    $t,
+                    $available,
+                ));
+                return Command::FAILURE;
+            }
         }
 
+        // 2. Resolve per-type counts.
+        /** @var array<string, int> $counts */
+        $counts = [];
+        if ($rawCount !== null && $rawCount !== '') {
+            // Flag-driven path stays single-type (validated above: $types is [single]).
+            $counts[$types[0]] = (int) $rawCount;
+        } else {
+            foreach ($types as $t) {
+                $counts[$t] = (int) \Laravel\Prompts\text(
+                    label: sprintf('How many %s?', $t),
+                    default: '10',
+                    validate: fn (string $v) => (ctype_digit($v) && (int) $v > 0)
+                        ? null
+                        : 'Count must be a positive integer',
+                );
+            }
+        }
+
+        foreach ($counts as $t => $c) {
+            if ($c < 1) {
+                $output->writeln('<error>Count must be a positive integer.</error>');
+                return Command::FAILURE;
+            }
+        }
+
+        // 3. Resolve filename (only when ONE type selected; multi-type auto-generates).
+        $singleType = count($types) === 1;
+        $name = null;
+        if ($singleType) {
+            $firstType = $types[0];
+            $name = (string) ($rawName !== null && $rawName !== '' ? $rawName : $this->defaultName($firstType));
+            if ($isInteractive && ($rawName === null || $rawName === '')) {
+                $name = \Laravel\Prompts\text(
+                    label: 'File name',
+                    default: $this->defaultName($firstType),
+                    validate: fn (string $v) => str_ends_with($v, 'Seeder') ? null : 'Name must end in "Seeder"',
+                );
+            }
+
+            if (!str_ends_with($name, 'Seeder')) {
+                $output->writeln(sprintf(
+                    "<error>Name must end in 'Seeder' (got '%s')</error>",
+                    $name,
+                ));
+                return Command::FAILURE;
+            }
+        }
+
+        // 4. Shared locale / seed / format prompts.
         $locale = (string) ($rawLocale !== null && $rawLocale !== '' ? $rawLocale : '');
         if ($isInteractive && ($rawLocale === null || $rawLocale === '')) {
             $locale = (string) \Laravel\Prompts\search(
@@ -121,29 +165,6 @@ class SeedMakeCommand extends Command
             $format = 'php';
         }
 
-        if (!$this->generatorPool->has($type)) {
-            $available = implode(', ', array_keys($this->generatorPool->getAll()));
-            $output->writeln(sprintf(
-                '<error>Unknown type "%s". Available: %s</error>',
-                $type,
-                $available,
-            ));
-            return Command::FAILURE;
-        }
-
-        if ($count < 1) {
-            $output->writeln('<error>Count must be a positive integer.</error>');
-            return Command::FAILURE;
-        }
-
-        if (!str_ends_with($name, 'Seeder')) {
-            $output->writeln(sprintf(
-                "<error>Name must end in 'Seeder' (got '%s')</error>",
-                $name,
-            ));
-            return Command::FAILURE;
-        }
-
         if (!in_array($format, SeederFileBuilder::SUPPORTED_FORMATS, true)) {
             $output->writeln(sprintf(
                 '<error>Unknown format "%s". Use: %s</error>',
@@ -153,39 +174,76 @@ class SeedMakeCommand extends Command
             return Command::FAILURE;
         }
 
+        // 5. Ensure seeders directory exists.
         $seedersDir = rtrim($this->directoryList->getRoot(), '/') . '/' . self::SEEDERS_DIR;
         if (!is_dir($seedersDir) && !mkdir($seedersDir, 0o755, true) && !is_dir($seedersDir)) {
             $output->writeln(sprintf('<error>Could not create %s</error>', $seedersDir));
             return Command::FAILURE;
         }
 
-        $target = $seedersDir . '/' . $name . '.' . $format;
-
+        // 6. Write each target file with per-type overwrite confirm.
         $force = (bool) $input->getOption('force');
+        $created = [];
+        $skipped = [];
 
-        if (file_exists($target) && !$force) {
-            if (!$isInteractive) {
-                $output->writeln(sprintf(
-                    '<error>%s already exists. Pass --force to overwrite.</error>',
-                    $target,
-                ));
-                return Command::FAILURE;
+        foreach ($types as $t) {
+            $fileName = $singleType && $name !== null ? $name : $this->defaultName($t);
+            $target = $seedersDir . '/' . $fileName . '.' . $format;
+
+            if (file_exists($target) && !$force) {
+                if (!$isInteractive) {
+                    $output->writeln(sprintf(
+                        '<error>%s already exists. Pass --force to overwrite.</error>',
+                        $target,
+                    ));
+                    return Command::FAILURE;
+                }
+                $overwrite = \Laravel\Prompts\confirm(
+                    label: sprintf('%s already exists. Overwrite?', $target),
+                    default: false,
+                );
+                if (!$overwrite) {
+                    $skipped[] = $target;
+                    $output->writeln(sprintf('<comment>Skipped %s</comment>', $target));
+                    continue;
+                }
             }
-            $keep = \Laravel\Prompts\confirm(
-                label: sprintf('%s already exists. Overwrite?', $target),
-                default: false,
+
+            file_put_contents(
+                $target,
+                $this->builder->build($t, $counts[$t], $locale, $seed, $format),
             );
-            if (!$keep) {
-                $output->writeln('<comment>Aborted.</comment>');
-                return Command::SUCCESS;
-            }
+            $created[] = $target;
+            $output->writeln(sprintf('<info>Created %s</info>', $target));
         }
 
-        file_put_contents($target, $this->builder->build($type, $count, $locale, $seed, $format));
-
-        $output->writeln(sprintf('<info>Created %s</info>', $target));
+        if ($created === [] && $skipped !== []) {
+            $output->writeln('<comment>No files written.</comment>');
+        }
 
         return Command::SUCCESS;
+    }
+
+    /** @return string[] */
+    private function promptForTypes(): array
+    {
+        $knownTypes = array_keys($this->generatorPool->getAll());
+        $options = [];
+        foreach ($knownTypes as $t) {
+            $deps = $this->generatorPool->get($t)->getDependencies();
+            $options[$t] = $deps === []
+                ? $t
+                : sprintf('%s — cascades: %s', $t, implode(', ', $deps));
+        }
+
+        /** @var array<int, string> $selected */
+        $selected = \Laravel\Prompts\multiselect(
+            label: 'Entity types',
+            options: $options,
+            required: true,
+        );
+
+        return array_values($selected);
     }
 
     /** @return array<string, string> */
