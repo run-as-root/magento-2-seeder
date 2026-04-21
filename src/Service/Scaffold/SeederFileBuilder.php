@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace RunAsRoot\Seeder\Service\Scaffold;
 
 use InvalidArgumentException;
-use LogicException;
+use Symfony\Component\Yaml\Yaml;
 
 class SeederFileBuilder
 {
@@ -33,7 +33,7 @@ class SeederFileBuilder
         return match ($format) {
             self::FORMAT_PHP  => $this->buildPhp($type, $count, $locale, $seed),
             self::FORMAT_JSON => $this->buildJson($type, $count, $locale, $seed),
-            default => throw new LogicException(sprintf('Format "%s" is listed as supported but has no builder.', $format)),
+            self::FORMAT_YAML => $this->buildYaml($type, $count, $locale, $seed),
         };
     }
 
@@ -45,6 +45,16 @@ class SeederFileBuilder
         }
 
         return json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
+    }
+
+    private function buildYaml(string $type, int $count, string $locale, ?int $seed): string
+    {
+        $payload = ['type' => $type, 'count' => $count, 'locale' => $locale];
+        if ($seed !== null) {
+            $payload['seed'] = $seed;
+        }
+
+        return Yaml::dump($payload);
     }
 
     private function buildPhp(string $type, int $count, string $locale, ?int $seed): string

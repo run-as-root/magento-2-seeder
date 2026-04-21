@@ -70,4 +70,36 @@ final class SeederFileBuilderTest extends TestCase
             $decoded,
         );
     }
+
+    public function test_builds_yaml_seeder_without_seed(): void
+    {
+        $builder = new SeederFileBuilder();
+        $content = $builder->build('order', 100, 'en_US', null, 'yaml');
+
+        $parsed = \Symfony\Component\Yaml\Yaml::parse($content);
+        $this->assertSame(
+            ['type' => 'order', 'count' => 100, 'locale' => 'en_US'],
+            $parsed,
+        );
+    }
+
+    public function test_builds_yaml_seeder_with_seed(): void
+    {
+        $builder = new SeederFileBuilder();
+        $content = $builder->build('product', 25, 'fr_FR', 7, 'yaml');
+
+        $parsed = \Symfony\Component\Yaml\Yaml::parse($content);
+        $this->assertSame(
+            ['type' => 'product', 'count' => 25, 'locale' => 'fr_FR', 'seed' => 7],
+            $parsed,
+        );
+    }
+
+    public function test_rejects_unsupported_format(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/Unsupported format/');
+
+        (new SeederFileBuilder())->build('order', 1, 'en_US', null, 'toml');
+    }
 }
