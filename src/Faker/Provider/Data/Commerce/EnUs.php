@@ -4,34 +4,36 @@ declare(strict_types=1);
 
 namespace RunAsRoot\Seeder\Faker\Provider\Data\Commerce;
 
+use RunAsRoot\Seeder\Faker\Provider\CommerceLocaleInterface;
+
 /**
  * Commerce wordlists ported verbatim from @faker-js/faker (MIT).
  * See NOTICE at repo root for attribution + upstream commit hash.
  *
  * Refresh instructions: src/Faker/Provider/Data/Commerce/README.md
  */
-final class EnUs
+final class EnUs implements CommerceLocaleInterface
 {
-    /** @return list<string> */
-    public static function adjectives(): array
+    /** @return non-empty-list<string> */
+    public function adjectives(): array
     {
         return self::ADJECTIVES;
     }
 
-    /** @return list<string> */
-    public static function materials(): array
+    /** @return non-empty-list<string> */
+    public function materials(): array
     {
         return self::MATERIALS;
     }
 
-    /** @return list<string> */
-    public static function products(): array
+    /** @return non-empty-list<string> */
+    public function products(): array
     {
         return self::PRODUCTS;
     }
 
-    /** @return list<string> */
-    public static function departments(): array
+    /** @return non-empty-list<string> */
+    public function departments(): array
     {
         return self::DEPARTMENTS;
     }
