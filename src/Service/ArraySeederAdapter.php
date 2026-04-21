@@ -16,6 +16,8 @@ class ArraySeederAdapter implements SeederInterface
         'cms' => 50,
     ];
 
+    private ?\Closure $onProgress = null;
+
     public function __construct(
         private readonly array $config,
         private readonly EntityHandlerPool $handlerPool,
@@ -33,6 +35,16 @@ class ArraySeederAdapter implements SeederInterface
         return $this->config['order'] ?? self::DEFAULT_ORDER[$this->config['type']] ?? 100;
     }
 
+    public function setProgressCallback(?callable $callback): void
+    {
+        $this->onProgress = $callback === null ? null : \Closure::fromCallable($callback);
+    }
+
+    public function hasCount(): bool
+    {
+        return isset($this->config['count']) && $this->generateRunner !== null;
+    }
+
     public function run(): void
     {
         if (isset($this->config['count']) && $this->generateRunner !== null) {
@@ -41,7 +53,7 @@ class ArraySeederAdapter implements SeederInterface
                 locale: $this->config['locale'] ?? 'en_US',
                 seed: $this->config['seed'] ?? null,
             );
-            $this->generateRunner->run($config);
+            $this->generateRunner->run($config, $this->onProgress);
 
             return;
         }

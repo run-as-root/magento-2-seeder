@@ -156,4 +156,62 @@ final class ArraySeederAdapterTest extends TestCase
 
         $adapter->run();
     }
+
+    public function test_forwards_progress_callback_to_generate_runner(): void
+    {
+        $callback = static function (string $type, int $done, int $total): void {
+        };
+
+        $capturedCallback = null;
+        $generateRunner = $this->createMock(GenerateRunner::class);
+        $generateRunner->expects($this->once())
+            ->method('run')
+            ->willReturnCallback(function (GenerateRunConfig $config, ?callable $onProgress = null) use (&$capturedCallback): array {
+                $capturedCallback = $onProgress;
+
+                return [];
+            });
+
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $pool = new EntityHandlerPool(['order' => $handler]);
+
+        $adapter = new ArraySeederAdapter(
+            ['type' => 'order', 'count' => 10],
+            $pool,
+            $generateRunner
+        );
+        $adapter->setProgressCallback($callback);
+        $adapter->run();
+
+        $this->assertNotNull($capturedCallback);
+        $this->assertIsCallable($capturedCallback);
+    }
+
+    public function test_has_count_returns_true_for_count_config(): void
+    {
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $pool = new EntityHandlerPool(['order' => $handler]);
+
+        $adapter = new ArraySeederAdapter(
+            ['type' => 'order', 'count' => 10],
+            $pool,
+            $this->createMock(GenerateRunner::class)
+        );
+
+        $this->assertTrue($adapter->hasCount());
+    }
+
+    public function test_has_count_returns_false_for_data_config(): void
+    {
+        $handler = $this->createMock(EntityHandlerInterface::class);
+        $pool = new EntityHandlerPool(['customer' => $handler]);
+
+        $adapter = new ArraySeederAdapter(
+            ['type' => 'customer', 'data' => [['email' => 'a@b.com']]],
+            $pool,
+            null
+        );
+
+        $this->assertFalse($adapter->hasCount());
+    }
 }
