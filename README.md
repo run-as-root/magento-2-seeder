@@ -17,9 +17,8 @@ bin/magento setup:upgrade
 
 ## Quick Start
 
-1. Create a `dev/seeders/` directory in your Magento root
-2. Drop seeder files in it (copy from `examples/` to get started)
-3. Run `bin/magento db:seed`
+1. Scaffold a seeder: `bin/magento db:seed:make`
+2. Run `bin/magento db:seed`
 
 ## Usage
 
@@ -45,6 +44,33 @@ bin/magento db:seed --fresh --only=customer,product
 # Show current DB counts of seeded entities
 bin/magento db:seed:status
 ```
+
+## Scaffolding
+
+`db:seed:make` creates a seeder file for you — no need to memorize the format.
+
+```bash
+# Interactive
+bin/magento db:seed:make
+
+# Flag-driven (CI / scripts)
+bin/magento db:seed:make --type=order --count=100 --format=php
+
+# Overwrite an existing file
+bin/magento db:seed:make --type=order --count=100 --force
+```
+
+Available flags:
+
+| Flag | Default | Notes |
+|------|---------|-------|
+| `--type` | — | required non-interactive |
+| `--count` | — | required non-interactive |
+| `--format` | `php` | `php` / `json` / `yaml` |
+| `--name` | `{Type}Seeder` | file name without extension |
+| `--locale` | `en_US` | Faker locale |
+| `--seed` | random | Faker seed for deterministic output |
+| `--force` | `false` | overwrite existing file |
 
 ## Seeder Formats
 
