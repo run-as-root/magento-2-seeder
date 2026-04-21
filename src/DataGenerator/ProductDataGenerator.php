@@ -43,7 +43,7 @@ class ProductDataGenerator implements DataGeneratorInterface, SubtypeAwareInterf
     {
         $subtype = $this->forcedSubtype ?? $this->weightedPick($faker, self::SUBTYPE_WEIGHTS);
 
-        $name = ucwords($faker->words($faker->numberBetween(2, 4), true));
+        $name = $faker->productName();
         $categoryIds = [];
         $categories = $registry->getAll('category');
         if ($categories !== []) {

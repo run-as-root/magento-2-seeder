@@ -18,4 +18,6 @@ parameters:
         - '#Zend_Db_Expr#'
         # Mocked run() results in tests may omit the 'failed' key; production code uses ?? 0
         - '#Offset .failed. on array\{type: string, success: .*, count: int, failed: int, error: string\|null\} on left side of \?\? always exists and is not nullable#'
+        # CommerceProvider methods are dispatched via Faker\Generator::__call after addProvider()
+        - '#Call to an undefined method Faker\\Generator::(productName|productAdjective|productMaterial|product|productDepartment)\(\)#'
     reportUnmatchedIgnoredErrors: false

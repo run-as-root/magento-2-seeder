@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace RunAsRoot\Seeder\Test\Unit\DataGenerator;
 
 use RunAsRoot\Seeder\DataGenerator\ProductDataGenerator;
+use RunAsRoot\Seeder\Faker\Provider\CommerceProvider;
+use RunAsRoot\Seeder\Faker\Provider\Data\Commerce\EnUs;
 use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 use Faker\Factory;
 use PHPUnit\Framework\TestCase;
@@ -36,6 +38,7 @@ final class ProductDataGeneratorTest extends TestCase
     public function test_generate_returns_valid_product_data(): void
     {
         $faker = Factory::create('en_US');
+        $faker->addProvider(new CommerceProvider($faker, new EnUs()));
         $faker->seed(42);
         $registry = new GeneratedDataRegistry();
 
@@ -57,6 +60,7 @@ final class ProductDataGeneratorTest extends TestCase
     public function test_generate_includes_product_type_key(): void
     {
         $faker = Factory::create('en_US');
+        $faker->addProvider(new CommerceProvider($faker, new EnUs()));
         $registry = new GeneratedDataRegistry();
         $generator = new ProductDataGenerator();
 
@@ -72,6 +76,7 @@ final class ProductDataGeneratorTest extends TestCase
     public function test_generate_assigns_category_from_registry(): void
     {
         $faker = Factory::create('en_US');
+        $faker->addProvider(new CommerceProvider($faker, new EnUs()));
         $registry = new GeneratedDataRegistry();
         $registry->add('category', ['id' => 5]);
         $registry->add('category', ['id' => 8]);
@@ -85,6 +90,7 @@ final class ProductDataGeneratorTest extends TestCase
     public function test_generate_produces_unique_skus(): void
     {
         $faker = Factory::create('en_US');
+        $faker->addProvider(new CommerceProvider($faker, new EnUs()));
         $registry = new GeneratedDataRegistry();
         $generator = new ProductDataGenerator();
 
@@ -100,6 +106,7 @@ final class ProductDataGeneratorTest extends TestCase
     public function test_generate_respects_forced_subtype(): void
     {
         $faker = Factory::create('en_US');
+        $faker->addProvider(new CommerceProvider($faker, new EnUs()));
         $registry = new GeneratedDataRegistry();
         $generator = new ProductDataGenerator();
         $generator->setForcedSubtype('bundle');
@@ -113,6 +120,7 @@ final class ProductDataGeneratorTest extends TestCase
     public function test_generate_returns_weighted_random_when_not_forced(): void
     {
         $faker = Factory::create('en_US');
+        $faker->addProvider(new CommerceProvider($faker, new EnUs()));
         $faker->seed(1234);
         $registry = new GeneratedDataRegistry();
         $generator = new ProductDataGenerator();
@@ -133,6 +141,7 @@ final class ProductDataGeneratorTest extends TestCase
     public function test_generate_emits_downloadable_payload_when_subtype_is_downloadable(): void
     {
         $faker = Factory::create('en_US');
+        $faker->addProvider(new CommerceProvider($faker, new EnUs()));
         $registry = new GeneratedDataRegistry();
         $generator = new ProductDataGenerator();
         $generator->setForcedSubtype('downloadable');
@@ -150,6 +159,7 @@ final class ProductDataGeneratorTest extends TestCase
     public function test_generate_assigns_product_to_least_used_category(): void
     {
         $faker = Factory::create('en_US');
+        $faker->addProvider(new CommerceProvider($faker, new EnUs()));
         $registry = new GeneratedDataRegistry();
         $registry->add('category', ['id' => 10]);
         $registry->add('category', ['id' => 11]);
@@ -165,6 +175,7 @@ final class ProductDataGeneratorTest extends TestCase
     public function test_generate_fills_all_categories_before_doubling_up(): void
     {
         $faker = Factory::create('en_US');
+        $faker->addProvider(new CommerceProvider($faker, new EnUs()));
         $registry = new GeneratedDataRegistry();
         $registry->add('category', ['id' => 10]);
         $registry->add('category', ['id' => 11]);
@@ -184,6 +195,7 @@ final class ProductDataGeneratorTest extends TestCase
     public function test_generate_includes_reviews_array(): void
     {
         $faker = Factory::create('en_US');
+        $faker->addProvider(new CommerceProvider($faker, new EnUs()));
         $registry = new GeneratedDataRegistry();
 
         $data = (new ProductDataGenerator())->generate($faker, $registry);
@@ -195,6 +207,7 @@ final class ProductDataGeneratorTest extends TestCase
     public function test_generate_reviews_contain_required_keys(): void
     {
         $faker = Factory::create('en_US');
+        $faker->addProvider(new CommerceProvider($faker, new EnUs()));
         $registry = new GeneratedDataRegistry();
         $generator = new ProductDataGenerator();
 
@@ -222,6 +235,7 @@ final class ProductDataGeneratorTest extends TestCase
     public function test_generate_distributes_evenly_across_categories(): void
     {
         $faker = Factory::create('en_US');
+        $faker->addProvider(new CommerceProvider($faker, new EnUs()));
         $registry = new GeneratedDataRegistry();
         $registry->add('category', ['id' => 10]);
         $registry->add('category', ['id' => 11]);
