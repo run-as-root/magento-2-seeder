@@ -170,6 +170,35 @@ final class SeedMakeCommandTest extends TestCase
         $this->assertSame(42, $config['count']);
     }
 
+    public function test_non_interactive_applies_default_locale_when_omitted(): void
+    {
+        $command = $this->makeCommand(['order']);
+        $tester = new CommandTester($command);
+
+        $exit = $tester->execute(
+            ['--type' => 'order', '--count' => '2'],
+            ['interactive' => false],
+        );
+
+        $this->assertSame(Command::SUCCESS, $exit);
+        $config = require $this->workspace . '/dev/seeders/OrderSeeder.php';
+        $this->assertSame('en_US', $config['locale']);
+    }
+
+    public function test_non_interactive_applies_default_format_when_omitted(): void
+    {
+        $command = $this->makeCommand(['order']);
+        $tester = new CommandTester($command);
+
+        $exit = $tester->execute(
+            ['--type' => 'order', '--count' => '2'],
+            ['interactive' => false],
+        );
+
+        $this->assertSame(Command::SUCCESS, $exit);
+        $this->assertFileExists($this->workspace . '/dev/seeders/OrderSeeder.php');
+    }
+
     /** @param string[] $knownTypes */
     private function makeCommand(array $knownTypes): SeedMakeCommand
     {

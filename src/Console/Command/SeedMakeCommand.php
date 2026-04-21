@@ -36,9 +36,9 @@ class SeedMakeCommand extends Command
 
         $this->addOption('type', null, InputOption::VALUE_REQUIRED, $typeDesc);
         $this->addOption('count', null, InputOption::VALUE_REQUIRED, 'Number of entities to generate');
-        $this->addOption('format', null, InputOption::VALUE_REQUIRED, 'File format: php|json|yaml', 'php');
+        $this->addOption('format', null, InputOption::VALUE_REQUIRED, 'File format: php|json|yaml (default: php)');
         $this->addOption('name', null, InputOption::VALUE_REQUIRED, 'File name (default: {Type}Seeder)');
-        $this->addOption('locale', null, InputOption::VALUE_REQUIRED, 'Faker locale', 'en_US');
+        $this->addOption('locale', null, InputOption::VALUE_REQUIRED, 'Faker locale (default: en_US)');
         $this->addOption('seed', null, InputOption::VALUE_REQUIRED, 'Faker seed (omit for random)');
         $this->addOption('force', null, InputOption::VALUE_NONE, 'Overwrite file without prompting');
     }
@@ -92,12 +92,15 @@ class SeedMakeCommand extends Command
             );
         }
 
-        $locale = (string) ($rawLocale !== null && $rawLocale !== '' ? $rawLocale : 'en_US');
-        if ($isInteractive && ($rawLocale === null || $rawLocale === 'en_US')) {
+        $locale = (string) ($rawLocale !== null && $rawLocale !== '' ? $rawLocale : '');
+        if ($isInteractive && ($rawLocale === null || $rawLocale === '')) {
             $locale = (string) \Laravel\Prompts\search(
                 label: 'Faker locale',
                 options: fn (string $q) => $this->filterLocales($q),
             );
+        }
+        if ($locale === '') {
+            $locale = 'en_US';
         }
 
         $seed = $rawSeed !== null && $rawSeed !== '' ? (int) $rawSeed : null;
@@ -107,12 +110,15 @@ class SeedMakeCommand extends Command
         }
 
         $format = (string) $rawFormat;
-        if ($isInteractive && ($rawFormat === null || $rawFormat === 'php')) {
+        if ($isInteractive && ($rawFormat === null || $rawFormat === '')) {
             $format = (string) \Laravel\Prompts\select(
                 label: 'File format',
                 options: ['php' => 'PHP', 'json' => 'JSON', 'yaml' => 'YAML'],
                 default: 'php',
             );
+        }
+        if ($format === '') {
+            $format = 'php';
         }
 
         if (!$this->generatorPool->has($type)) {
