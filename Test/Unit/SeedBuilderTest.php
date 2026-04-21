@@ -7,6 +7,7 @@ namespace RunAsRoot\Seeder\Test\Unit;
 use PHPUnit\Framework\TestCase;
 use RunAsRoot\Seeder\Api\DataGeneratorInterface;
 use RunAsRoot\Seeder\Api\EntityHandlerInterface;
+use RunAsRoot\Seeder\Faker\Provider\CommerceProviderFactory;
 use RunAsRoot\Seeder\SeedBuilder;
 use RunAsRoot\Seeder\Service\DataGeneratorPool;
 use RunAsRoot\Seeder\Service\EntityHandlerPool;
@@ -32,7 +33,7 @@ final class SeedBuilderTest extends TestCase
             'customer',
             new EntityHandlerPool(['customer' => $handler]),
             new DataGeneratorPool(['customer' => $generator]),
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
         );
 
@@ -55,7 +56,7 @@ final class SeedBuilderTest extends TestCase
             'customer',
             new EntityHandlerPool(['customer' => $handler]),
             new DataGeneratorPool(['customer' => $generator]),
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
         );
 
@@ -79,7 +80,7 @@ final class SeedBuilderTest extends TestCase
             'customer',
             new EntityHandlerPool(['customer' => $handler]),
             new DataGeneratorPool(['customer' => $generator]),
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
         );
 
@@ -105,7 +106,7 @@ final class SeedBuilderTest extends TestCase
             'customer',
             new EntityHandlerPool(['customer' => $handler]),
             new DataGeneratorPool(['customer' => $generator]),
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
         );
 
@@ -155,7 +156,7 @@ final class SeedBuilderTest extends TestCase
             'product',
             new EntityHandlerPool(['product' => $handler]),
             new DataGeneratorPool(['product' => $generator]),
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
         );
 
@@ -189,7 +190,7 @@ final class SeedBuilderTest extends TestCase
             'product',
             new EntityHandlerPool(['product' => $handler]),
             new DataGeneratorPool(['product' => $generator]),
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
         );
 
@@ -214,7 +215,7 @@ final class SeedBuilderTest extends TestCase
             'customer',
             new EntityHandlerPool(['customer' => $handler]),
             new DataGeneratorPool([]), // no generator registered
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
         );
 
@@ -229,7 +230,7 @@ final class SeedBuilderTest extends TestCase
             'customer',
             new EntityHandlerPool(['customer' => $handler]),
             new DataGeneratorPool([]),
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
         );
 
@@ -253,7 +254,7 @@ final class SeedBuilderTest extends TestCase
             'customer',
             new EntityHandlerPool(['customer' => $handler]),
             new DataGeneratorPool(['customer' => $generator]),
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             $registry,
         );
 
@@ -282,7 +283,7 @@ final class SeedBuilderTest extends TestCase
             'product.bundle',
             new EntityHandlerPool(['product' => $handler]),
             new DataGeneratorPool(['product' => $generator]),
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             $registry,
         );
 
@@ -306,7 +307,7 @@ final class SeedBuilderTest extends TestCase
             'customer',
             new EntityHandlerPool(['customer' => $handler]),
             new DataGeneratorPool(['customer' => $generator]),
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             $registry,
         );
 
@@ -334,7 +335,7 @@ final class SeedBuilderTest extends TestCase
             'customer',
             new EntityHandlerPool(['customer' => $handler]),
             new DataGeneratorPool([]),
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
         );
 

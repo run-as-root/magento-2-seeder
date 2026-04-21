@@ -7,6 +7,7 @@ namespace RunAsRoot\Seeder\Test\Unit;
 use PHPUnit\Framework\TestCase;
 use RunAsRoot\Seeder\SeedBuilder;
 use RunAsRoot\Seeder\Seeder;
+use RunAsRoot\Seeder\Faker\Provider\CommerceProviderFactory;
 use RunAsRoot\Seeder\Service\DataGeneratorPool;
 use RunAsRoot\Seeder\Service\EntityHandlerPool;
 use RunAsRoot\Seeder\Service\FakerFactory;
@@ -19,7 +20,7 @@ final class SeederTest extends TestCase
         return new class(
             new EntityHandlerPool([]),
             new DataGeneratorPool([]),
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
         ) extends Seeder {
             public function getType(): string { return 't'; }
@@ -95,7 +96,7 @@ final class SeederTest extends TestCase
                 'wishlist' => $makeHandler('wishlist'),
             ]),
             new DataGeneratorPool([]),
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
         ) extends Seeder {
             public function getType(): string { return 't'; }

@@ -7,6 +7,7 @@ namespace RunAsRoot\Seeder\Test\Unit\Service;
 use RunAsRoot\Seeder\Api\DataGeneratorInterface;
 use RunAsRoot\Seeder\Api\EntityHandlerInterface;
 use RunAsRoot\Seeder\Api\SubtypeAwareInterface;
+use RunAsRoot\Seeder\Faker\Provider\CommerceProviderFactory;
 use RunAsRoot\Seeder\Service\DataGeneratorPool;
 use RunAsRoot\Seeder\Service\DependencyResolver;
 use RunAsRoot\Seeder\Service\EntityHandlerPool;
@@ -44,7 +45,7 @@ final class GenerateRunnerTest extends TestCase
             $genPool,
             $handlerPool,
             $resolver,
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
             $this->createMock(LoggerInterface::class),
         );
@@ -77,7 +78,7 @@ final class GenerateRunnerTest extends TestCase
             $genPool,
             $handlerPool,
             $resolver,
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
             $this->createMock(LoggerInterface::class),
         );
@@ -107,7 +108,7 @@ final class GenerateRunnerTest extends TestCase
             $genPool,
             $handlerPool,
             $resolver,
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             $registry,
             $this->createMock(LoggerInterface::class),
         );
@@ -141,7 +142,7 @@ final class GenerateRunnerTest extends TestCase
             $genPool,
             $handlerPool,
             $resolver,
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             $registry,
             $this->createMock(LoggerInterface::class),
         );
@@ -173,7 +174,7 @@ final class GenerateRunnerTest extends TestCase
             $genPool,
             $handlerPool,
             $resolver,
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
             $this->createMock(LoggerInterface::class),
         );
@@ -214,7 +215,7 @@ final class GenerateRunnerTest extends TestCase
             $genPool,
             $handlerPool,
             $resolver,
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
             $this->createMock(LoggerInterface::class),
         );
@@ -246,7 +247,7 @@ final class GenerateRunnerTest extends TestCase
             $genPool,
             $handlerPool,
             $resolver,
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
             $this->createMock(LoggerInterface::class),
         );
@@ -283,7 +284,7 @@ final class GenerateRunnerTest extends TestCase
             $genPool,
             $handlerPool,
             $resolver,
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
             $this->createMock(LoggerInterface::class),
         );
@@ -318,7 +319,7 @@ final class GenerateRunnerTest extends TestCase
             $genPool,
             $handlerPool,
             $resolver,
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
             $this->createMock(LoggerInterface::class),
         );
@@ -345,7 +346,7 @@ final class GenerateRunnerTest extends TestCase
             $genPool,
             $handlerPool,
             $resolver,
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
             $this->createMock(LoggerInterface::class),
         );
@@ -383,7 +384,7 @@ final class GenerateRunnerTest extends TestCase
             $genPool,
             $handlerPool,
             $resolver,
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
             $this->createMock(LoggerInterface::class),
         );
@@ -424,7 +425,7 @@ final class GenerateRunnerTest extends TestCase
             $genPool,
             $handlerPool,
             $resolver,
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
             $this->createMock(LoggerInterface::class),
         );
@@ -462,7 +463,7 @@ final class GenerateRunnerTest extends TestCase
             $genPool,
             $handlerPool,
             $resolver,
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
             $this->createMock(LoggerInterface::class),
             $resource,
@@ -499,7 +500,7 @@ final class GenerateRunnerTest extends TestCase
             $genPool,
             $handlerPool,
             $resolver,
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
             $this->createMock(LoggerInterface::class),
             $resource,
@@ -541,7 +542,7 @@ final class GenerateRunnerTest extends TestCase
             $genPool,
             $handlerPool,
             $resolver,
-            new FakerFactory(),
+            new FakerFactory(new CommerceProviderFactory()),
             new GeneratedDataRegistry(),
             $this->createMock(LoggerInterface::class),
             $resource,
