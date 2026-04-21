@@ -57,6 +57,49 @@ final class SeedMakeCommandTest extends TestCase
         $this->assertSame('en_US', $config['locale']);
     }
 
+    public function test_rejects_unknown_type(): void
+    {
+        $command = $this->makeCommand(['order', 'customer']);
+        $tester = new CommandTester($command);
+
+        $exit = $tester->execute(
+            ['--type' => 'banana', '--count' => '5'],
+            ['interactive' => false],
+        );
+
+        $this->assertSame(Command::FAILURE, $exit);
+        $this->assertStringContainsString('banana', $tester->getDisplay());
+        $this->assertStringContainsString('order', $tester->getDisplay());
+    }
+
+    public function test_rejects_non_positive_count(): void
+    {
+        $command = $this->makeCommand(['order']);
+        $tester = new CommandTester($command);
+
+        $exit = $tester->execute(
+            ['--type' => 'order', '--count' => '0'],
+            ['interactive' => false],
+        );
+
+        $this->assertSame(Command::FAILURE, $exit);
+        $this->assertStringContainsString('positive', $tester->getDisplay());
+    }
+
+    public function test_rejects_unknown_format(): void
+    {
+        $command = $this->makeCommand(['order']);
+        $tester = new CommandTester($command);
+
+        $exit = $tester->execute(
+            ['--type' => 'order', '--count' => '5', '--format' => 'toml'],
+            ['interactive' => false],
+        );
+
+        $this->assertSame(Command::FAILURE, $exit);
+        $this->assertStringContainsString('toml', $tester->getDisplay());
+    }
+
     /** @param string[] $knownTypes */
     private function makeCommand(array $knownTypes): SeedMakeCommand
     {

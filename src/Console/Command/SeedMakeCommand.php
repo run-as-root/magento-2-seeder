@@ -53,6 +53,30 @@ class SeedMakeCommand extends Command
         $seed = $seedOption !== null && $seedOption !== '' ? (int) $seedOption : null;
         $name = (string) ($input->getOption('name') ?: $this->defaultName($type));
 
+        if (!$this->generatorPool->has($type)) {
+            $available = implode(', ', array_keys($this->generatorPool->getAll()));
+            $output->writeln(sprintf(
+                '<error>Unknown type "%s". Available: %s</error>',
+                $type,
+                $available,
+            ));
+            return Command::FAILURE;
+        }
+
+        if ($count < 1) {
+            $output->writeln('<error>Count must be a positive integer.</error>');
+            return Command::FAILURE;
+        }
+
+        if (!in_array($format, SeederFileBuilder::SUPPORTED_FORMATS, true)) {
+            $output->writeln(sprintf(
+                '<error>Unknown format "%s". Use: %s</error>',
+                $format,
+                implode(', ', SeederFileBuilder::SUPPORTED_FORMATS),
+            ));
+            return Command::FAILURE;
+        }
+
         $seedersDir = rtrim($this->directoryList->getRoot(), '/') . '/' . self::SEEDERS_DIR;
         if (!is_dir($seedersDir) && !mkdir($seedersDir, 0o755, true) && !is_dir($seedersDir)) {
             $output->writeln(sprintf('<error>Could not create %s</error>', $seedersDir));
