@@ -213,6 +213,46 @@ final class SeedMakeCommandTest extends TestCase
         $this->assertFileExists($this->workspace . '/dev/seeders/OrderSeeder.php');
     }
 
+    public function test_default_name_handles_snake_case_types(): void
+    {
+        // Exercises the private defaultName() helper through its observable
+        // effect: filename generation for snake_case entity types like
+        // `newsletter_subscriber` must become `NewsletterSubscriberSeeder`.
+        $command = $this->makeCommand(['newsletter_subscriber']);
+        $tester = new CommandTester($command);
+
+        $exit = $tester->execute(
+            ['--type' => 'newsletter_subscriber', '--count' => '3'],
+            ['interactive' => false],
+        );
+
+        $this->assertSame(Command::SUCCESS, $exit);
+        $this->assertFileExists(
+            $this->workspace . '/dev/seeders/NewsletterSubscriberSeeder.php',
+            'snake_case types must cascade to PascalCase filenames.',
+        );
+    }
+
+    public function test_default_name_handles_kebab_case_types(): void
+    {
+        // defaultName() splits on both `_` and `-`. No kebab type is
+        // registered in the real pool today, but guarding the helper
+        // against future types keeps the camelisation contract honest.
+        $command = $this->makeCommand(['custom-widget']);
+        $tester = new CommandTester($command);
+
+        $exit = $tester->execute(
+            ['--type' => 'custom-widget', '--count' => '1'],
+            ['interactive' => false],
+        );
+
+        $this->assertSame(Command::SUCCESS, $exit);
+        $this->assertFileExists(
+            $this->workspace . '/dev/seeders/CustomWidgetSeeder.php',
+            'kebab-case types must cascade to PascalCase filenames.',
+        );
+    }
+
     /** @param string[] $knownTypes */
     private function makeCommand(array $knownTypes): SeedMakeCommand
     {
