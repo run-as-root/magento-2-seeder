@@ -7,6 +7,7 @@ namespace RunAsRoot\Seeder\Test\Unit\Console\Command;
 use RunAsRoot\Seeder\Console\Command\SeedCommand;
 use RunAsRoot\Seeder\Service\GenerateRunConfig;
 use RunAsRoot\Seeder\Service\GenerateRunner;
+use RunAsRoot\Seeder\Service\ProgressReporter;
 use RunAsRoot\Seeder\Service\SeederRunConfig;
 use RunAsRoot\Seeder\Service\SeederRunner;
 use Magento\Framework\App\State;
@@ -31,6 +32,7 @@ final class SeedCommandTest extends TestCase
             $runner,
             $this->createMock(GenerateRunner::class),
             $this->createMock(Registry::class),
+            new ProgressReporter(),
         );
 
         $tester = new CommandTester($command);
@@ -59,6 +61,7 @@ final class SeedCommandTest extends TestCase
             $runner,
             $this->createMock(GenerateRunner::class),
             $this->createMock(Registry::class),
+            new ProgressReporter(),
         );
         $tester = new CommandTester($command);
         $tester->execute(['--only' => 'customer,order']);
@@ -81,6 +84,7 @@ final class SeedCommandTest extends TestCase
             $runner,
             $this->createMock(GenerateRunner::class),
             $this->createMock(Registry::class),
+            new ProgressReporter(),
         );
         $tester = new CommandTester($command);
         $tester->execute(['--fresh' => true, '--stop-on-error' => true]);
@@ -104,6 +108,7 @@ final class SeedCommandTest extends TestCase
             $runner,
             $this->createMock(GenerateRunner::class),
             $registry,
+            new ProgressReporter(),
         );
         $tester = new CommandTester($command);
         $tester->execute(['--fresh' => true]);
@@ -125,6 +130,7 @@ final class SeedCommandTest extends TestCase
             $runner,
             $this->createMock(GenerateRunner::class),
             $registry,
+            new ProgressReporter(),
         );
         $tester = new CommandTester($command);
         $tester->execute([]);
@@ -144,6 +150,7 @@ final class SeedCommandTest extends TestCase
             $runner,
             $this->createMock(GenerateRunner::class),
             $this->createMock(Registry::class),
+            new ProgressReporter(),
         );
         $tester = new CommandTester($command);
         $tester->execute([]);
@@ -178,6 +185,7 @@ final class SeedCommandTest extends TestCase
             $runner,
             $generateRunner,
             $this->createMock(Registry::class),
+            new ProgressReporter(),
         );
         $tester = new CommandTester($command);
         $tester->execute([
@@ -209,6 +217,7 @@ final class SeedCommandTest extends TestCase
             $this->createMock(SeederRunner::class),
             $generateRunner,
             $this->createMock(Registry::class),
+            new ProgressReporter(),
         );
         $tester = new CommandTester($command);
         $tester->execute(['--generate' => 'order:10']);
@@ -254,6 +263,25 @@ final class SeedCommandTest extends TestCase
         );
     }
 
+    public function test_empty_dev_seeders_prints_make_hint(): void
+    {
+        $runner = $this->createMock(SeederRunner::class);
+        $runner->method('run')->willReturn([]);
+
+        $command = new SeedCommand(
+            $this->createMock(State::class),
+            $runner,
+            $this->createMock(GenerateRunner::class),
+            $this->createMock(Registry::class),
+            new ProgressReporter(),
+        );
+
+        $tester = new CommandTester($command);
+        $tester->execute([]);
+
+        $this->assertStringContainsString('db:seed:make', $tester->getDisplay());
+    }
+
     private function makeCommand(): SeedCommand
     {
         return new SeedCommand(
@@ -261,6 +289,7 @@ final class SeedCommandTest extends TestCase
             $this->createMock(SeederRunner::class),
             $this->createMock(GenerateRunner::class),
             $this->createMock(Registry::class),
+            new ProgressReporter(),
         );
     }
 

@@ -6,6 +6,7 @@ namespace RunAsRoot\Seeder\Console\Command;
 
 use RunAsRoot\Seeder\Service\GenerateRunConfig;
 use RunAsRoot\Seeder\Service\GenerateRunner;
+use RunAsRoot\Seeder\Service\ProgressReporter;
 use RunAsRoot\Seeder\Service\SeederRunConfig;
 use RunAsRoot\Seeder\Service\SeederRunner;
 use Magento\Framework\App\Area;
@@ -13,7 +14,6 @@ use Magento\Framework\App\State;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Registry;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -25,6 +25,7 @@ class SeedCommand extends Command
         private readonly SeederRunner $runner,
         private readonly GenerateRunner $generateRunner,
         private readonly Registry $registry,
+        private readonly ProgressReporter $progressReporter,
     ) {
         parent::__construct();
     }
@@ -111,6 +112,7 @@ class SeedCommand extends Command
 
         if ($results === []) {
             $output->writeln('<comment>No seeders found in dev/seeders/</comment>');
+            $output->writeln('<info>Run bin/magento db:seed:make to scaffold one.</info>');
 
             return Command::SUCCESS;
         }
@@ -153,39 +155,8 @@ class SeedCommand extends Command
 
         $output->writeln(sprintf('<comment>Generating with locale: %s</comment>', $config->locale));
 
-        $progressBar = null;
-        $currentType = null;
-        $onProgress = function (string $type, int $done, int $total) use (
-            &$progressBar,
-            &$currentType,
-            $output
-        ): void {
-            if ($total < 10) {
-                return;
-            }
-
-            if ($currentType !== $type) {
-                if ($progressBar !== null) {
-                    $progressBar->finish();
-                    $output->writeln('');
-                }
-
-                $currentType = $type;
-                $progressBar = new ProgressBar($output, $total);
-                $progressBar->setFormat('  %message% %current%/%max% [%bar%] %percent:3s%%');
-                $progressBar->setMessage(sprintf('Generating %s', $type));
-                $progressBar->start();
-            }
-
-            $progressBar->setProgress($done);
-        };
-
-        $results = $this->generateRunner->run($config, $onProgress);
-
-        if ($progressBar !== null) {
-            $progressBar->finish();
-            $output->writeln('');
-        }
+        $results = $this->generateRunner->run($config, $this->progressReporter->asCallable());
+        $this->progressReporter->finish();
 
         $hasError = false;
         foreach ($results as $result) {
