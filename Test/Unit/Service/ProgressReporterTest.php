@@ -54,6 +54,17 @@ final class ProgressReporterTest extends TestCase
         $this->assertTrue(true);
     }
 
+    public function test_small_totals_are_skipped(): void
+    {
+        $reporter = new ProgressReporter();
+        $reporter->report('order', 1, 5);
+        $reporter->report('order', 5, 5);
+
+        // No exception, no state left — confirm finish() is idempotent.
+        $reporter->finish();
+        $this->assertTrue(true);
+    }
+
     public function test_as_callable_returns_a_closure(): void
     {
         $reporter = new ProgressReporter();

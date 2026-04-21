@@ -136,6 +136,14 @@ class SeedMakeCommand extends Command
             return Command::FAILURE;
         }
 
+        if (!str_ends_with($name, 'Seeder')) {
+            $output->writeln(sprintf(
+                "<error>Name must end in 'Seeder' (got '%s')</error>",
+                $name,
+            ));
+            return Command::FAILURE;
+        }
+
         if (!in_array($format, SeederFileBuilder::SUPPORTED_FORMATS, true)) {
             $output->writeln(sprintf(
                 '<error>Unknown format "%s". Use: %s</error>',

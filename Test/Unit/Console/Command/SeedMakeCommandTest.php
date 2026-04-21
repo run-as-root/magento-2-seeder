@@ -100,6 +100,20 @@ final class SeedMakeCommandTest extends TestCase
         $this->assertStringContainsString('toml', $tester->getDisplay());
     }
 
+    public function test_rejects_name_without_seeder_suffix(): void
+    {
+        $command = $this->makeCommand(['order']);
+        $tester = new CommandTester($command);
+
+        $exit = $tester->execute(
+            ['--type' => 'order', '--count' => '5', '--name' => 'MyOrders'],
+            ['interactive' => false],
+        );
+
+        $this->assertSame(Command::FAILURE, $exit);
+        $this->assertStringContainsString("end in 'Seeder'", $tester->getDisplay());
+    }
+
     public function test_non_interactive_without_required_flags_errors_out(): void
     {
         $command = $this->makeCommand(['order']);
@@ -157,16 +171,16 @@ final class SeedMakeCommandTest extends TestCase
         $tester = new CommandTester($command);
 
         $tester->execute(
-            ['--type' => 'order', '--count' => '5', '--name' => 'OverwriteMe'],
+            ['--type' => 'order', '--count' => '5', '--name' => 'OverwriteMeSeeder'],
             ['interactive' => false],
         );
         $exit = $tester->execute(
-            ['--type' => 'order', '--count' => '42', '--name' => 'OverwriteMe', '--force' => true],
+            ['--type' => 'order', '--count' => '42', '--name' => 'OverwriteMeSeeder', '--force' => true],
             ['interactive' => false],
         );
 
         $this->assertSame(Command::SUCCESS, $exit);
-        $config = require $this->workspace . '/dev/seeders/OverwriteMe.php';
+        $config = require $this->workspace . '/dev/seeders/OverwriteMeSeeder.php';
         $this->assertSame(42, $config['count']);
     }
 

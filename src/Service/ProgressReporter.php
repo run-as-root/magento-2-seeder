@@ -17,7 +17,7 @@ class ProgressReporter
      */
     public function report(string $type, int $done, int $total): void
     {
-        if ($total < 1) {
+        if ($total < 10) {
             return;
         }
 
