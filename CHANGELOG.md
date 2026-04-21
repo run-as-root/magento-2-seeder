@@ -5,6 +5,45 @@ All notable changes to `runasroot/module-seeder` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-04-21
+
+### Added
+
+- New `bin/magento db:seed:make` command — interactive scaffolder for seeder files. Eliminates the empty-`dev/seeders/` dead-end: new users can now go from zero to a working seeder without reading the README. Supports both interactive mode (TTY) and flag-driven mode (`--type`, `--count`, `--format`, `--name`, `--locale`, `--seed`, `--force`) for CI/scripts.
+- Multi-select entity types in the interactive flow: pick any combination from the eight supported types in one prompt, get one scaffolded file per selected type. Each type gets its own `count` prompt; locale, seed, and format are shared.
+- Cascade hints in the type picker — labels show dependency relationships so users understand what seeding one type implies (e.g. `order — cascades: customer, product, category`). Purely informational; `DependencyResolver` still handles resolution at seed time.
+- Progress rendering for count-based file seeders. Running `db:seed` against a scaffolded `count: 100` file used to run silent for minutes; now renders a Laravel Prompts progress bar via the new `ProgressReporter` service. Threshold matches the old `--generate` behavior (`count >= 10`).
+- Spinner for custom (non-count) `SeederInterface` implementations in file-based seed runs. TTY-gated so CI pipelines and log files stay clean.
+- `SeederFileBuilder` service — pure, stateless, unit-testable without Magento bootstrap. Emits PHP / JSON / YAML shapes that roundtrip through the existing `ArraySeederAdapter` loader. Hardened against quote escaping and code injection in `$type` / `$locale` via `var_export()`.
+- `Test/Integration/Console/SeedMakeRoundtripTest` — integration coverage of the full scaffold → seed pipeline against a live Mage-OS install. Uses `@magentoDbIsolation enabled` + delta-based assertions.
+- README section documenting the scaffolder with interactive + flag-driven examples and a flag reference table.
+
+### Changed
+
+- `db:seed` on an empty/missing `dev/seeders/` now prints `Run bin/magento db:seed:make to scaffold one.` alongside the existing `No seeders found` message. Exit code unchanged.
+- `SeederRunner::run()` now accepts an optional `?callable $onProgress` second argument. Fully BC — existing callers passing only `$config` keep working.
+- `ArraySeederAdapter` now exposes `setProgressCallback(?callable)` and `hasCount()` so file-based count seeders can render progress identical to `--generate=type:N`.
+- `--generate` progress rendering migrated from Symfony `ProgressBar` to Laravel Prompts `Progress`. Visual-only change, same `$total < 10` threshold.
+
+### Fixed
+
+- Progress cursor restoration — `SeedCommand::executeGenerate()` now wraps `GenerateRunner::run()` in `try { ... } finally { $progressReporter->finish() }` so the terminal cursor is always restored, even if generation throws.
+- Scaffolder rejects `--name` values that don't end in `Seeder` (matches the glob `SeederDiscovery` requires; otherwise the scaffolded file would be silently ignored at `db:seed` time).
+- Scaffolder's interactive flow no longer re-prompts for `--locale=en_US` / `--format=php` when the user explicitly passed those defaults on the CLI.
+
+### Installation
+
+```bash
+composer require runasroot/module-seeder:^1.3
+bin/magento setup:upgrade
+```
+
+Fully backward compatible with 1.2.x — no breaking public API changes. Adds two composer requires: `laravel/prompts: ^0.3` (runtime, for the scaffolder + progress UI) and `mockery/mockery: ^1.6` (dev-only, for `Prompt::fake()` in tests).
+
+### Contributors
+
+- @DavidLambauer — entire release
+
 ## [1.2.1] - 2026-04-20
 
 ### Fixed
