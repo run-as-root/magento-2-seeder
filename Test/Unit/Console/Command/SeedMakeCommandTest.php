@@ -111,6 +111,46 @@ final class SeedMakeCommandTest extends TestCase
         $this->assertMatchesRegularExpression('/--type.*--count/s', $tester->getDisplay());
     }
 
+    public function test_non_interactive_refuses_overwrite_without_force(): void
+    {
+        $command = $this->makeCommand(['order']);
+        $tester = new CommandTester($command);
+
+        // First write — creates file
+        $tester->execute(
+            ['--type' => 'order', '--count' => '5', '--name' => 'DupeSeeder'],
+            ['interactive' => false],
+        );
+
+        // Second write — should refuse
+        $exit = $tester->execute(
+            ['--type' => 'order', '--count' => '10', '--name' => 'DupeSeeder'],
+            ['interactive' => false],
+        );
+
+        $this->assertSame(Command::FAILURE, $exit);
+        $this->assertStringContainsString('--force', $tester->getDisplay());
+    }
+
+    public function test_non_interactive_overwrite_with_force(): void
+    {
+        $command = $this->makeCommand(['order']);
+        $tester = new CommandTester($command);
+
+        $tester->execute(
+            ['--type' => 'order', '--count' => '5', '--name' => 'OverwriteMe'],
+            ['interactive' => false],
+        );
+        $exit = $tester->execute(
+            ['--type' => 'order', '--count' => '42', '--name' => 'OverwriteMe', '--force' => true],
+            ['interactive' => false],
+        );
+
+        $this->assertSame(Command::SUCCESS, $exit);
+        $config = require $this->workspace . '/dev/seeders/OverwriteMe.php';
+        $this->assertSame(42, $config['count']);
+    }
+
     /** @param string[] $knownTypes */
     private function makeCommand(array $knownTypes): SeedMakeCommand
     {

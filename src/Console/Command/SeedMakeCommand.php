@@ -97,6 +97,19 @@ class SeedMakeCommand extends Command
 
         $target = $seedersDir . '/' . $name . '.' . $format;
 
+        $force = (bool) $input->getOption('force');
+
+        if (file_exists($target) && !$force) {
+            if (!$isInteractive) {
+                $output->writeln(sprintf(
+                    '<error>%s already exists. Pass --force to overwrite.</error>',
+                    $target,
+                ));
+                return Command::FAILURE;
+            }
+            // Interactive overwrite confirm is added in Task 11.
+        }
+
         file_put_contents($target, $this->builder->build($type, $count, $locale, $seed, $format));
 
         $output->writeln(sprintf('<info>Created %s</info>', $target));
