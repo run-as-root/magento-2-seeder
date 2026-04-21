@@ -47,18 +47,28 @@ bin/magento db:seed:status
 
 ## Scaffolding
 
-`db:seed:make` creates a seeder file for you — no need to memorize the format.
+`db:seed:make` creates one or more seeder files for you — no need to memorize the format.
 
 ```bash
-# Interactive
+# Interactive — multi-select entity types, per-type counts, one file per type.
+# Labels show cascade hints, e.g. "order — cascades: customer, product, category".
 bin/magento db:seed:make
 
-# Flag-driven (CI / scripts)
+# Flag-driven (CI / scripts) — single type per invocation.
 bin/magento db:seed:make --type=order --count=100 --format=php
 
 # Overwrite an existing file
 bin/magento db:seed:make --type=order --count=100 --force
 ```
+
+Interactive mode pairs a multi-select (use space to toggle, enter to confirm) with a
+per-type count prompt — picking `order`, `customer` writes both `OrderSeeder.<ext>`
+and `CustomerSeeder.<ext>`. Shared prompts (locale, seed, format) apply to every
+file written in the same run. If any target already exists you'll get a per-file
+overwrite confirm; declined files are skipped and the rest continue.
+
+Flag-driven mode stays single-type (`--type=X --count=N`); multi-type via flags
+is not supported yet.
 
 Available flags:
 
