@@ -59,6 +59,8 @@ class SeederFileBuilder
 
     private function buildPhp(string $type, int $count, string $locale, ?int $seed): string
     {
+        $typeLiteral = var_export($type, true);
+        $localeLiteral = var_export($locale, true);
         $seedLine = $seed !== null
             ? sprintf("    'seed' => %d,\n", $seed)
             : "    // 'seed' is optional: uncomment and set an integer for deterministic output\n";
@@ -69,9 +71,9 @@ class SeederFileBuilder
 declare(strict_types=1);
 
 return [
-    'type' => '{$type}',
+    'type' => {$typeLiteral},
     'count' => {$count},
-    'locale' => '{$locale}',
+    'locale' => {$localeLiteral},
 {$seedLine}];
 
 PHP;

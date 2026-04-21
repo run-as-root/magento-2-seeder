@@ -121,4 +121,39 @@ final class SeederFileBuilderTest extends TestCase
             unlink($path);
         }
     }
+
+    public function test_php_escapes_single_quotes_in_type_and_locale(): void
+    {
+        $builder = new SeederFileBuilder();
+        $content = $builder->build("o'der", 1, "en_US", null, 'php');
+
+        $path = tempnam(sys_get_temp_dir(), 'seeder-');
+        file_put_contents($path, $content);
+
+        try {
+            $config = require $path;
+            $this->assertSame("o'der", $config['type']);
+            $this->assertSame('en_US', $config['locale']);
+        } finally {
+            unlink($path);
+        }
+    }
+
+    public function test_php_escapes_injection_attempt_in_type(): void
+    {
+        $builder = new SeederFileBuilder();
+        $hostile = "x', 'injected' => 'pwned', 'ignored' => 'y";
+        $content = $builder->build($hostile, 1, 'en_US', null, 'php');
+
+        $path = tempnam(sys_get_temp_dir(), 'seeder-');
+        file_put_contents($path, $content);
+
+        try {
+            $config = require $path;
+            $this->assertSame($hostile, $config['type']);
+            $this->assertArrayNotHasKey('injected', $config);
+        } finally {
+            unlink($path);
+        }
+    }
 }
