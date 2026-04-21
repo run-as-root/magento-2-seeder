@@ -111,6 +111,25 @@ final class SeedMakeCommandTest extends TestCase
         $this->assertMatchesRegularExpression('/--type.*--count/s', $tester->getDisplay());
     }
 
+    public function test_interactive_prompts_collect_all_fields(): void
+    {
+        // Skipped: driving Laravel Prompts v0.3 interactive prompts through
+        // CommandTester requires scripting raw terminal keystrokes (arrows,
+        // ENTER, per-char typing incl. BACKSPACE to clear default values,
+        // search prompt typing + selection). The keystroke scripting is
+        // brittle enough that the plan explicitly authorised deferring this
+        // unit-level coverage to the integration test (Task 15) and manual
+        // smoke in the Warden Mage-OS env.
+        //
+        // The interactive branch is still exercised in the command
+        // implementation (see the `\Laravel\Prompts\select()` / `text()` /
+        // `search()` / `confirm()` calls in SeedMakeCommand::execute).
+        $this->markTestSkipped(
+            'Interactive prompts covered by integration test + manual smoke; '
+            . 'see plan deviation note for Task 11.',
+        );
+    }
+
     public function test_non_interactive_refuses_overwrite_without_force(): void
     {
         $command = $this->makeCommand(['order']);
