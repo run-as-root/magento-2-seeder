@@ -59,4 +59,16 @@ final class FakerFactoryTest extends TestCase
         $department = $faker->productDepartment();
         $this->assertNotEmpty($department);
     }
+
+    public function test_no_arg_constructor_still_provides_commerce_methods(): void
+    {
+        // BC guarantee: callers who instantiated FakerFactory without arguments
+        // (pre-1.4.0) keep working — the factory self-constructs its default
+        // CommerceProviderFactory.
+        $factory = new FakerFactory();
+        $faker = $factory->create('en_US');
+
+        $this->assertInstanceOf(Generator::class, $faker);
+        $this->assertNotEmpty($faker->productName());
+    }
 }

@@ -10,8 +10,11 @@ use Faker\Generator;
 
 class FakerFactory
 {
-    public function __construct(private readonly CommerceProviderFactory $commerceProviderFactory)
+    private readonly CommerceProviderFactory $commerceProviderFactory;
+
+    public function __construct(?CommerceProviderFactory $commerceProviderFactory = null)
     {
+        $this->commerceProviderFactory = $commerceProviderFactory ?? new CommerceProviderFactory();
     }
 
     public function create(string $locale = 'en_US', ?int $seed = null): Generator
