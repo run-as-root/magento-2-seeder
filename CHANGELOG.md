@@ -5,6 +5,38 @@ All notable changes to `runasroot/module-seeder` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-04-22
+
+### Added
+
+- `CommerceProvider` — a new `Faker\Provider\Base` subclass registered on every `Faker\Generator` that `FakerFactory` hands out. Exposes five methods mirroring the `commerce` module from [@faker-js/faker](https://github.com/faker-js/faker) (MIT): `$faker->productName()`, `->productAdjective()`, `->productMaterial()`, `->product()`, `->productDepartment()`. Eliminates lorem-ipsum product names in seeded catalogs — `Dolor Sit Amet` becomes `Handcrafted Rubber Pizza`.
+- `CommerceLocaleInterface` + `CommerceProviderFactory` — locale-aware wiring with silent English fallback. `en_US` ships with 27 adjectives, 15 materials, 24 products, and 22 departments ported verbatim from @faker-js/faker's `en` commerce locale at upstream commit `9e2c0e391b436f56ff54ad89d02efa9982406389`. Unknown locales (incl. `de_DE` in v1) fall back to the English wordlists without warning — mirrors how Faker itself handles unmapped locales.
+- `src/Faker/Provider/Data/Commerce/README.md` — refresh + locale-extension guide. Explains how to re-sync wordlists from FakerJS (manual, ~5 min) and how to add new locale data classes.
+- `NOTICE` at repo root — MIT attribution for the ported wordlists, pinned to the source commit.
+- README section documenting the new `$faker->product*()` methods with a one-line example per method and a note on locale scope.
+
+### Changed
+
+- `ProductDataGenerator::generate()` now uses `$faker->productName()` in place of `ucwords($faker->words(2-4, true))`. Product names are now three-word commerce-style strings drawn from curated upstream wordlists. Name-field assertions in user seeder tests that relied on the lorem-word shape will need updating (shape assertions like "non-empty string" keep working unchanged).
+- `CategoryDataGenerator::generate()` now uses `$faker->productDepartment()` in place of the hardcoded 20-entry `COMMERCE_CATEGORIES` const + random-lorem-word suffix. Names like `Electronics labore` become clean `Books` / `Jewelery` / `Automotive`. The `COMMERCE_CATEGORIES` private const was removed.
+
+### Fixed
+
+- n/a — this release is purely additive in user-facing behavior.
+
+### Installation
+
+```bash
+composer require runasroot/module-seeder:^1.4
+bin/magento setup:upgrade
+```
+
+Fully backward compatible with 1.3.x — no breaking public API changes. `FakerFactory::__construct()` gained an optional `?CommerceProviderFactory` argument; the factory self-constructs a default when none is passed, so any caller doing `new FakerFactory()` keeps working unchanged. No new composer requires.
+
+### Contributors
+
+- @DavidLambauer — entire release
+
 ## [1.3.0] - 2026-04-21
 
 ### Added
