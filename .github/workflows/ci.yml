@@ -15,12 +15,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - id: supported-version
-        uses: graycoreio/github-actions-magento2/supported-version@v5.1.0
+        uses: graycoreio/github-actions-magento2/supported-version@v6.0.0
 
   check-extension:
     name: MageCheck
     needs: compute_matrix
-    uses: graycoreio/github-actions-magento2/.github/workflows/check-extension.yaml@v5.1.0
+    uses: graycoreio/github-actions-magento2/.github/workflows/check-extension.yaml@v6.0.0
     with:
       matrix: ${{ needs.compute_matrix.outputs.matrix }}
 
