@@ -94,6 +94,7 @@ final class ProductHandlerTest extends TestCase
         $factory->method('create')->willReturn($product);
 
         $repository = $this->createMock(ProductRepositoryInterface::class);
+        $repository->method('save')->willReturn($product);
 
         $stockItem = $this->createMock(StockItemInterface::class);
         $stockItem->expects($this->once())->method('setQty')->with(50.0)->willReturnSelf();
@@ -449,6 +450,11 @@ final class ProductHandlerTest extends TestCase
             $typeBuilderPool = new TypeBuilderPool(['simple' => $builder]);
         }
 
+        if ($productRepository === null) {
+            $productRepository = $this->createMock(ProductRepositoryInterface::class);
+            $productRepository->method('save')->willReturn($this->createMock(ProductInterface::class));
+        }
+
         if ($stockRegistry === null) {
             $stockItem = $this->createMock(StockItemInterface::class);
             $stockItem->method('setQty')->willReturnSelf();
@@ -459,7 +465,7 @@ final class ProductHandlerTest extends TestCase
 
         return new ProductHandler(
             $productFactory ?? $this->createMock(ProductInterfaceFactory::class),
-            $productRepository ?? $this->createMock(ProductRepositoryInterface::class),
+            $productRepository,
             $searchCriteriaBuilder ?? $this->createMock(SearchCriteriaBuilder::class),
             $stockRegistry,
             $imageDownloader ?? $this->createMock(ImageDownloader::class),

@@ -470,8 +470,8 @@ final class ReviewCreatorTest extends TestCase
     {
         return $this->getMockBuilder(Rating::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['getResourceCollection', 'load', 'addOptionVote'])
-            ->addMethods(['setPositionOrder', 'getOptions', 'addEntityFilter', 'setReviewId'])
+            ->onlyMethods(['getResourceCollection', 'load', 'addOptionVote', 'getOptions'])
+            ->addMethods(['setPositionOrder', 'addEntityFilter', 'setReviewId'])
             ->getMock();
     }
 }

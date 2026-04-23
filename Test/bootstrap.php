@@ -653,9 +653,6 @@ if (!interface_exists(\Magento\Quote\Api\Data\CartInterface::class)) {
             public function setStoreId($storeId);
             public function setCustomerIsGuest($customerIsGuest);
             public function getBillingAddress(): AddressInterface;
-            public function getShippingAddress(): AddressInterface;
-            public function getPayment(): \Magento\Quote\Model\Quote\Payment;
-            public function collectTotals(): self;
         }
     ');
 }
@@ -1201,6 +1198,7 @@ if (!class_exists(\Magento\Review\Model\Rating::class)) {
             public function getResourceCollection() { return $this; }
             public function load(): array { return []; }
             public function addOptionVote($optionId, $productId): self { return $this; }
+            public function getOptions(): array { return []; }
         }
     ');
 }

@@ -275,7 +275,10 @@ final class OrderHandlerTest extends TestCase
     {
         return $this->getMockBuilder(CartInterface::class)
             ->disableOriginalConstructor()
-            ->addMethods(['setCustomerEmail', 'setCustomerFirstname', 'setCustomerLastname'])
+            ->addMethods([
+                'setCustomerEmail', 'setCustomerFirstname', 'setCustomerLastname',
+                'getShippingAddress', 'getPayment', 'collectTotals',
+            ])
             ->getMockForAbstractClass();
     }
 
