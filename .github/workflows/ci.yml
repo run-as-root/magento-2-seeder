@@ -16,6 +16,12 @@ jobs:
       - uses: actions/checkout@v4
       - id: supported-version
         uses: graycoreio/github-actions-magento2/supported-version@v6.0.0
+        with:
+          include_services: true
+          # 2.4.6 excluded: magento/framework pins symfony/console ^5.4,
+          # which conflicts with laravel/prompts ^0.3 (needs ^6.2+).
+          kind: custom
+          custom_versions: "magento/project-community-edition:2.4.7-p9, magento/project-community-edition:2.4.8-p4"
 
   check-extension:
     name: MageCheck
