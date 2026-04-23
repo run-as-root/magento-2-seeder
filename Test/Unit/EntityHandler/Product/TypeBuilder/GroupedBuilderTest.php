@@ -290,8 +290,9 @@ final class GroupedBuilderTest extends TestCase
                 'getTypeId', 'setTypeId', 'getWeight', 'setWeight',
                 'setCustomAttribute', 'setProductLinks',
                 'setData', 'getData', 'addImageToMediaGallery',
-                'setStockData', 'setWebsiteIds',
+                'setStockData',
             ])
+            ->addMethods(['setWebsiteIds'])
             ->getMock();
     }
 

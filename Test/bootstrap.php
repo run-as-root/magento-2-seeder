@@ -432,7 +432,6 @@ if (!class_exists(\Magento\Catalog\Model\Product::class)) {
             public function getData($key = "", $index = null) { return null; }
             public function addImageToMediaGallery($file, $mediaAttribute = null, $move = false, $exclude = true): self { return $this; }
             public function setStockData(array $stockData): self { return $this; }
-            public function setWebsiteIds(array $websiteIds): self { return $this; }
         }
     ');
 }
@@ -652,10 +651,7 @@ if (!interface_exists(\Magento\Quote\Api\Data\CartInterface::class)) {
         interface CartInterface {
             public function getId(): ?int;
             public function setStoreId($storeId);
-            public function setCustomerEmail(string $email);
-            public function setCustomerIsGuest(bool $isGuest);
-            public function setCustomerFirstname(string $firstname);
-            public function setCustomerLastname(string $lastname);
+            public function setCustomerIsGuest($customerIsGuest);
             public function getBillingAddress(): AddressInterface;
             public function getShippingAddress(): AddressInterface;
             public function getPayment(): \Magento\Quote\Model\Quote\Payment;
