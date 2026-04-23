@@ -462,10 +462,6 @@ final class ReviewCreatorTest extends TestCase
         return $rating;
     }
 
-    /**
-     * addEntityFilter and setReviewId are magic (__call) methods on real Magento's
-     * Rating/Collection, so createMock() cannot see them. addMethods() declares them.
-     */
     private function buildRatingMock(): Rating&MockObject
     {
         return $this->getMockBuilder(Rating::class)
