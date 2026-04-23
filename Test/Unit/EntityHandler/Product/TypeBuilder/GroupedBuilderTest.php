@@ -9,7 +9,6 @@ use Magento\Catalog\Api\Data\ProductLinkInterfaceFactory;
 use Magento\Catalog\Api\Data\ProductSearchResultsInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product;
-use RunAsRoot\Seeder\Test\Unit\EntityHandler\Product\ProductMockTrait;
 use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
@@ -21,7 +20,6 @@ use RunAsRoot\Seeder\Service\GeneratedDataRegistry;
 
 final class GroupedBuilderTest extends TestCase
 {
-    use ProductMockTrait;
     private ProductRepositoryInterface&MockObject $productRepository;
     private ProductLinkInterfaceFactory&MockObject $productLinkFactory;
     private SearchCriteriaBuilder&MockObject $searchCriteriaBuilder;
@@ -281,4 +279,20 @@ final class GroupedBuilderTest extends TestCase
         $searchCriteria = $this->createMock(SearchCriteriaInterface::class);
         $this->searchCriteriaBuilder->method('create')->willReturn($searchCriteria);
     }
+    private function createProductMock(): Product&MockObject
+    {
+        return $this->getMockBuilder(Product::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods([
+                'getId', 'getSku', 'setSku', 'getName', 'setName',
+                'getPrice', 'setPrice', 'getAttributeSetId', 'setAttributeSetId',
+                'getStatus', 'setStatus', 'getVisibility', 'setVisibility',
+                'getTypeId', 'setTypeId', 'getWeight', 'setWeight',
+                'setCustomAttribute', 'setProductLinks',
+                'setData', 'getData', 'addImageToMediaGallery',
+            ])
+            ->addMethods(['setStockData', 'setWebsiteIds'])
+            ->getMock();
+    }
+
 }

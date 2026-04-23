@@ -7,7 +7,6 @@ namespace RunAsRoot\Seeder\Test\Unit\EntityHandler\Product\TypeBuilder;
 use Magento\Catalog\Api\Data\ProductInterfaceFactory;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product;
-use RunAsRoot\Seeder\Test\Unit\EntityHandler\Product\ProductMockTrait;
 use Magento\ConfigurableProduct\Api\Data\OptionInterface;
 use Magento\ConfigurableProduct\Api\Data\OptionInterfaceFactory;
 use Magento\ConfigurableProduct\Api\Data\OptionValueInterface;
@@ -23,7 +22,6 @@ use RunAsRoot\Seeder\EntityHandler\Product\TypeBuilder\ConfigurableBuilder;
 
 final class ConfigurableBuilderTest extends TestCase
 {
-    use ProductMockTrait;
 
     private ProductInterfaceFactory&MockObject $productFactory;
     private ProductRepositoryInterface&MockObject $productRepository;
@@ -326,4 +324,20 @@ final class ConfigurableBuilderTest extends TestCase
 
         return $opt;
     }
+    private function createProductMock(): Product&MockObject
+    {
+        return $this->getMockBuilder(Product::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods([
+                'getId', 'getSku', 'setSku', 'getName', 'setName',
+                'getPrice', 'setPrice', 'getAttributeSetId', 'setAttributeSetId',
+                'getStatus', 'setStatus', 'getVisibility', 'setVisibility',
+                'getTypeId', 'setTypeId', 'getWeight', 'setWeight',
+                'setCustomAttribute', 'setProductLinks',
+                'setData', 'getData', 'addImageToMediaGallery',
+            ])
+            ->addMethods(['setStockData', 'setWebsiteIds'])
+            ->getMock();
+    }
+
 }

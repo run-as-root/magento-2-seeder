@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace RunAsRoot\Seeder\Test\Unit\EntityHandler\Product\TypeBuilder;
 
 use Magento\Catalog\Model\Product;
-use RunAsRoot\Seeder\Test\Unit\EntityHandler\Product\ProductMockTrait;
 use Magento\Downloadable\Api\Data\File\ContentInterface;
 use Magento\Downloadable\Api\Data\File\ContentInterfaceFactory;
 use Magento\Downloadable\Api\Data\LinkInterface;
@@ -18,7 +17,6 @@ use RunAsRoot\Seeder\EntityHandler\Product\TypeBuilder\DownloadableBuilder;
 
 final class DownloadableBuilderTest extends TestCase
 {
-    use ProductMockTrait;
     private LinkInterfaceFactory&MockObject $linkFactory;
     private LinkRepositoryInterface&MockObject $linkRepository;
     private ContentInterfaceFactory&MockObject $fileContentFactory;
@@ -260,4 +258,20 @@ final class DownloadableBuilderTest extends TestCase
 
         return $content;
     }
+    private function createProductMock(): Product&MockObject
+    {
+        return $this->getMockBuilder(Product::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods([
+                'getId', 'getSku', 'setSku', 'getName', 'setName',
+                'getPrice', 'setPrice', 'getAttributeSetId', 'setAttributeSetId',
+                'getStatus', 'setStatus', 'getVisibility', 'setVisibility',
+                'getTypeId', 'setTypeId', 'getWeight', 'setWeight',
+                'setCustomAttribute', 'setProductLinks',
+                'setData', 'getData', 'addImageToMediaGallery',
+            ])
+            ->addMethods(['setStockData', 'setWebsiteIds'])
+            ->getMock();
+    }
+
 }

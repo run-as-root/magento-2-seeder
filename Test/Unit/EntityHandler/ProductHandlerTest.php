@@ -9,7 +9,6 @@ use RunAsRoot\Seeder\EntityHandler\Product\TypeBuilderPool;
 use RunAsRoot\Seeder\EntityHandler\ProductHandler;
 use RunAsRoot\Seeder\Service\ImageDownloader;
 use RunAsRoot\Seeder\Service\ReviewCreator;
-use RunAsRoot\Seeder\Test\Unit\EntityHandler\Product\ProductMockTrait;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\Data\ProductInterfaceFactory;
 use Magento\Catalog\Api\Data\ProductSearchResultsInterface;
@@ -21,11 +20,11 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
 use Magento\CatalogInventory\Model\Indexer\Stock\Processor as StockIndexerProcessor;
 use Magento\Framework\App\Filesystem\DirectoryList;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 final class ProductHandlerTest extends TestCase
 {
-    use ProductMockTrait;
 
     public function test_get_type_returns_product(): void
     {
@@ -470,4 +469,20 @@ final class ProductHandlerTest extends TestCase
             $reviewCreator ?? $this->createMock(ReviewCreator::class),
         );
     }
+    private function createProductMock(): Product&MockObject
+    {
+        return $this->getMockBuilder(Product::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods([
+                'getId', 'getSku', 'setSku', 'getName', 'setName',
+                'getPrice', 'setPrice', 'getAttributeSetId', 'setAttributeSetId',
+                'getStatus', 'setStatus', 'getVisibility', 'setVisibility',
+                'getTypeId', 'setTypeId', 'getWeight', 'setWeight',
+                'setCustomAttribute', 'setProductLinks',
+                'setData', 'getData', 'addImageToMediaGallery',
+            ])
+            ->addMethods(['setStockData', 'setWebsiteIds'])
+            ->getMock();
+    }
+
 }
