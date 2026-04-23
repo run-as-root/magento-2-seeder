@@ -31,7 +31,11 @@ final class ProcessingTransitionTest extends TestCase
         $invoiceService = $this->createMock(InvoiceService::class);
         $transactionFactory = $this->createMock(TransactionFactory::class);
         $orderRepository = $this->createMock(OrderRepositoryInterface::class);
-        $order = $this->createMock(Order::class);
+        $order = $this->getMockBuilder(Order::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['canInvoice', 'getAllItems', 'getEntityId', 'getIncrementId', 'getState', 'hold', 'cancel', 'setState', 'setStatus'])
+            ->addMethods(['setIsInProcess'])
+            ->getMock();
         $invoice = $this->createMock(Invoice::class);
         $transaction = $this->createMock(Transaction::class);
 

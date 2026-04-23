@@ -34,7 +34,7 @@ final class CategoryHandlerTest extends TestCase
         $factory->method('create')->willReturn($category);
 
         $repository = $this->createMock(CategoryRepositoryInterface::class);
-        $repository->expects($this->once())->method('save')->with($category);
+        $repository->expects($this->once())->method('save')->with($category)->willReturn($category);
 
         $handler = $this->createHandler(
             categoryFactory: $factory,

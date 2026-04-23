@@ -186,10 +186,14 @@ final class ConfigurableBuilderTest extends TestCase
             return $child;
         });
 
-        $this->linkManagement->expects($this->once())
-            ->method('setChildren')
-            ->with('PARENT-SKU', $expectedChildSkus)
-            ->willReturn(true);
+        $addedChildSkus = [];
+        $this->linkManagement->expects($this->exactly(count($expectedChildSkus)))
+            ->method('addChild')
+            ->willReturnCallback(function (string $sku, string $childSku) use (&$addedChildSkus): int {
+                $this->assertSame('PARENT-SKU', $sku);
+                $addedChildSkus[] = $childSku;
+                return 1;
+            });
 
         // Stub EavConfig + option factories for the option registration path.
         $this->stubColorAndSizeAttributes();
@@ -243,7 +247,7 @@ final class ConfigurableBuilderTest extends TestCase
         });
 
         $this->productRepository->method('save')->willReturnCallback(fn ($c) => $c);
-        $this->linkManagement->method('setChildren')->willReturn(true);
+        $this->linkManagement->method('addChild')->willReturn(1);
 
         $this->stubColorAndSizeAttributes();
         $this->optionFactory->method('create')->willReturnCallback(
@@ -298,7 +302,11 @@ final class ConfigurableBuilderTest extends TestCase
         string $label,
         array $options
     ): AttributeInterface&MockObject {
-        $attr = $this->createMock(AttributeInterface::class);
+        $attr = $this->getMockBuilder(AttributeInterface::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getAttributeId', 'getAttributeCode', 'getDefaultFrontendLabel', 'getOptions'])
+            ->addMethods(['getFrontendLabel'])
+            ->getMock();
         $attr->method('getAttributeId')->willReturn($id);
         $attr->method('getAttributeCode')->willReturn($code);
         $attr->method('getDefaultFrontendLabel')->willReturn($label);

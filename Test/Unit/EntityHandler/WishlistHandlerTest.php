@@ -25,7 +25,7 @@ final class WishlistHandlerTest extends TestCase
 
     public function test_create_loads_wishlist_and_inserts_item(): void
     {
-        $wishlist = $this->createMock(Wishlist::class);
+        $wishlist = $this->createWishlistMock();
         $wishlist->expects($this->once())
             ->method('loadByCustomerId')
             ->with(42, true)
@@ -37,9 +37,7 @@ final class WishlistHandlerTest extends TestCase
         $wishlistFactory = $this->createMock(WishlistFactory::class);
         $wishlistFactory->method('create')->willReturn($wishlist);
 
-        $product = $this->createMock(ProductInterface::class);
-        $product->method('getId')->willReturn(101);
-        $product->method('getStoreId')->willReturn(1);
+        $product = $this->createProductMock(101, 1);
 
         $productRepository = $this->createMock(ProductRepositoryInterface::class);
         $productRepository->expects($this->once())
@@ -84,9 +82,7 @@ final class WishlistHandlerTest extends TestCase
 
     public function test_create_uses_explicit_store_id_from_item_data(): void
     {
-        $product = $this->createMock(ProductInterface::class);
-        $product->method('getId')->willReturn(1);
-        $product->method('getStoreId')->willReturn(9); // should be overridden
+        $product = $this->createProductMock(1, 9); // getStoreId should be overridden
 
         $connection = $this->createMock(AdapterInterface::class);
         $connection->expects($this->once())
@@ -108,9 +104,7 @@ final class WishlistHandlerTest extends TestCase
 
     public function test_create_falls_back_to_product_store_id_when_item_store_id_unset(): void
     {
-        $product = $this->createMock(ProductInterface::class);
-        $product->method('getId')->willReturn(1);
-        $product->method('getStoreId')->willReturn(3);
+        $product = $this->createProductMock(1, 3);
 
         $connection = $this->createMock(AdapterInterface::class);
         $connection->expects($this->once())
@@ -132,9 +126,7 @@ final class WishlistHandlerTest extends TestCase
 
     public function test_create_falls_back_to_store_id_one_when_product_store_id_is_zero(): void
     {
-        $product = $this->createMock(ProductInterface::class);
-        $product->method('getId')->willReturn(1);
-        $product->method('getStoreId')->willReturn(0);
+        $product = $this->createProductMock(1, 0);
 
         $connection = $this->createMock(AdapterInterface::class);
         $connection->expects($this->once())
@@ -156,7 +148,7 @@ final class WishlistHandlerTest extends TestCase
 
     public function test_create_inserts_each_item_separately(): void
     {
-        $wishlist = $this->createMock(Wishlist::class);
+        $wishlist = $this->createWishlistMock();
         $wishlist->method('loadByCustomerId')->willReturnSelf();
         $wishlist->method('setShared')->willReturnSelf();
         $wishlist->method('save')->willReturnSelf();
@@ -165,13 +157,8 @@ final class WishlistHandlerTest extends TestCase
         $wishlistFactory = $this->createMock(WishlistFactory::class);
         $wishlistFactory->method('create')->willReturn($wishlist);
 
-        $productA = $this->createMock(ProductInterface::class);
-        $productA->method('getId')->willReturn(10);
-        $productA->method('getStoreId')->willReturn(1);
-
-        $productB = $this->createMock(ProductInterface::class);
-        $productB->method('getId')->willReturn(20);
-        $productB->method('getStoreId')->willReturn(1);
+        $productA = $this->createProductMock(10, 1);
+        $productB = $this->createProductMock(20, 1);
 
         $productRepository = $this->createMock(ProductRepositoryInterface::class);
         $productRepository->method('getById')
@@ -258,11 +245,32 @@ final class WishlistHandlerTest extends TestCase
         $handler->clean();
     }
 
+    private function createWishlistMock(): Wishlist
+    {
+        return $this->getMockBuilder(Wishlist::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['loadByCustomerId', 'save', 'getId'])
+            ->addMethods(['setShared'])
+            ->getMock();
+    }
+
+    private function createProductMock(int $id, int $storeId): ProductInterface
+    {
+        $product = $this->getMockBuilder(ProductInterface::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getId', 'getSku', 'setSku', 'getName', 'setName', 'getPrice', 'setPrice', 'getAttributeSetId', 'setAttributeSetId', 'getStatus', 'setStatus', 'getVisibility', 'setVisibility', 'getTypeId', 'setTypeId', 'getWeight', 'setWeight', 'setCustomAttribute', 'setProductLinks'])
+            ->addMethods(['getStoreId'])
+            ->getMock();
+        $product->method('getId')->willReturn($id);
+        $product->method('getStoreId')->willReturn($storeId);
+        return $product;
+    }
+
     private function buildInsertingHandler(
         ProductInterface $product,
         AdapterInterface $connection,
     ): WishlistHandler {
-        $wishlist = $this->createMock(Wishlist::class);
+        $wishlist = $this->createWishlistMock();
         $wishlist->method('loadByCustomerId')->willReturnSelf();
         $wishlist->method('setShared')->willReturnSelf();
         $wishlist->method('save')->willReturnSelf();

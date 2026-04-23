@@ -53,10 +53,10 @@ final class OrderHandlerTest extends TestCase
         $cartItemRepository = $this->createMock(CartItemRepositoryInterface::class);
         $cartItemRepository->expects($this->once())->method('save');
 
-        $billingAddress = $this->createMock(\Magento\Quote\Api\Data\AddressInterface::class);
+        $billingAddress = $this->createAddressMock();
         $billingAddress->method('addData')->willReturnSelf();
 
-        $shippingAddress = $this->createMock(\Magento\Quote\Api\Data\AddressInterface::class);
+        $shippingAddress = $this->createAddressMock();
         $shippingAddress->method('addData')->willReturnSelf();
         $shippingAddress->method('setCollectShippingRates')->willReturnSelf();
         $shippingAddress->method('setShippingMethod')->willReturnSelf();
@@ -117,10 +117,10 @@ final class OrderHandlerTest extends TestCase
 
         $cartItemRepository = $this->createMock(CartItemRepositoryInterface::class);
 
-        $billingAddress = $this->createMock(\Magento\Quote\Api\Data\AddressInterface::class);
+        $billingAddress = $this->createAddressMock();
         $billingAddress->method('addData')->willReturnSelf();
 
-        $shippingAddress = $this->createMock(\Magento\Quote\Api\Data\AddressInterface::class);
+        $shippingAddress = $this->createAddressMock();
         $shippingAddress->method('addData')->willReturnSelf();
         $shippingAddress->method('setCollectShippingRates')->willReturnSelf();
         $shippingAddress->method('setShippingMethod')->willReturnSelf();
@@ -196,10 +196,10 @@ final class OrderHandlerTest extends TestCase
 
         $cartItemRepository = $this->createMock(CartItemRepositoryInterface::class);
 
-        $billingAddress = $this->createMock(\Magento\Quote\Api\Data\AddressInterface::class);
+        $billingAddress = $this->createAddressMock();
         $billingAddress->method('addData')->willReturnSelf();
 
-        $shippingAddress = $this->createMock(\Magento\Quote\Api\Data\AddressInterface::class);
+        $shippingAddress = $this->createAddressMock();
         $shippingAddress->method('addData')->willReturnSelf();
         $shippingAddress->method('setCollectShippingRates')->willReturnSelf();
         $shippingAddress->method('setShippingMethod')->willReturnSelf();
@@ -269,6 +269,15 @@ final class OrderHandlerTest extends TestCase
         );
 
         $handler->clean();
+    }
+
+    private function createAddressMock(): \Magento\Quote\Api\Data\AddressInterface
+    {
+        return $this->getMockBuilder(\Magento\Quote\Api\Data\AddressInterface::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['setShippingMethod'])
+            ->addMethods(['addData', 'setCollectShippingRates'])
+            ->getMock();
     }
 
     private function createHandler(

@@ -28,7 +28,11 @@ final class CmsHandlerTest extends TestCase
 
     public function test_create_saves_cms_page(): void
     {
-        $page = $this->createMock(PageInterface::class);
+        $page = $this->getMockBuilder(PageInterface::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getId', 'getIdentifier', 'setIdentifier', 'getTitle', 'setTitle', 'getContent', 'setContent', 'setIsActive'])
+            ->addMethods(['setStoreId'])
+            ->getMock();
         $page->expects($this->once())->method('setIdentifier')->with('seed-test-page')->willReturnSelf();
         $page->expects($this->once())->method('setTitle')->with('Test Page')->willReturnSelf();
         $page->expects($this->once())->method('setContent')->with('<p>Hello</p>')->willReturnSelf();
@@ -56,7 +60,11 @@ final class CmsHandlerTest extends TestCase
 
     public function test_create_saves_cms_block(): void
     {
-        $block = $this->createMock(BlockInterface::class);
+        $block = $this->getMockBuilder(BlockInterface::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['getId', 'getIdentifier', 'setIdentifier', 'getTitle', 'setTitle', 'getContent', 'setContent', 'setIsActive'])
+            ->addMethods(['setStoreId'])
+            ->getMock();
         $block->expects($this->once())->method('setIdentifier')->with('seed-test-block')->willReturnSelf();
         $block->expects($this->once())->method('setTitle')->with('Test Block')->willReturnSelf();
         $block->expects($this->once())->method('setContent')->with('<p>Block</p>')->willReturnSelf();

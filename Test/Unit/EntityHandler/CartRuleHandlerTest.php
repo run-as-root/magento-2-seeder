@@ -7,6 +7,8 @@ namespace RunAsRoot\Seeder\Test\Unit\EntityHandler;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
 use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Phrase;
+use Magento\OfflineShipping\Model\SalesRule\Rule as FreeShippingRule;
 use Magento\SalesRule\Api\CouponRepositoryInterface;
 use Magento\SalesRule\Api\Data\CouponInterface;
 use Magento\SalesRule\Api\Data\CouponInterfaceFactory;
@@ -14,7 +16,6 @@ use Magento\SalesRule\Api\Data\RuleInterface;
 use Magento\SalesRule\Api\Data\RuleInterfaceFactory;
 use Magento\SalesRule\Api\Data\RuleSearchResultInterface;
 use Magento\SalesRule\Api\RuleRepositoryInterface;
-use Magento\SalesRule\Model\Rule;
 use PHPUnit\Framework\TestCase;
 use RunAsRoot\Seeder\EntityHandler\CartRuleHandler;
 
@@ -32,7 +33,7 @@ final class CartRuleHandlerTest extends TestCase
         $rule = $this->createRuleMock();
         $rule->expects($this->once())
             ->method('setSimpleFreeShipping')
-            ->with(Rule::FREE_SHIPPING_ITEM);
+            ->with(FreeShippingRule::FREE_SHIPPING_ITEM);
 
         $ruleFactory = $this->createMock(RuleInterfaceFactory::class);
         $ruleFactory->method('create')->willReturn($rule);
@@ -188,7 +189,7 @@ final class CartRuleHandlerTest extends TestCase
             ->willReturnCallback(function () use (&$attempts, $coupon): CouponInterface {
                 $attempts++;
                 if ($attempts === 1) {
-                    throw new AlreadyExistsException('duplicate');
+                    throw new AlreadyExistsException(new Phrase('duplicate'));
                 }
                 return $coupon;
             });
@@ -228,7 +229,7 @@ final class CartRuleHandlerTest extends TestCase
         $couponFactory = $this->createMock(CouponInterfaceFactory::class);
         $couponFactory->method('create')->willReturn($coupon);
 
-        $duplicate = new AlreadyExistsException('dup');
+        $duplicate = new AlreadyExistsException(new Phrase('dup'));
         $couponRepository = $this->createMock(CouponRepositoryInterface::class);
         $couponRepository->expects($this->exactly(3))
             ->method('save')

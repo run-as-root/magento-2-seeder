@@ -48,7 +48,7 @@ final class ProductHandlerTest extends TestCase
         $factory->method('create')->willReturn($product);
 
         $repository = $this->createMock(ProductRepositoryInterface::class);
-        $repository->expects($this->once())->method('save')->with($product);
+        $repository->expects($this->once())->method('save')->with($product)->willReturn($product);
 
         $stockItem = $this->createMock(StockItemInterface::class);
         $stockItem->expects($this->once())->method('setQty')->with(100.0)->willReturnSelf();
@@ -156,7 +156,7 @@ final class ProductHandlerTest extends TestCase
         $factory->method('create')->willReturn($product);
 
         $repository = $this->createMock(ProductRepositoryInterface::class);
-        $repository->expects($this->once())->method('save')->with($product);
+        $repository->expects($this->once())->method('save')->with($product)->willReturn($product);
 
         $stockItem = $this->createMock(StockItemInterface::class);
         $stockItem->method('setQty')->willReturnSelf();
@@ -447,11 +447,19 @@ final class ProductHandlerTest extends TestCase
             $typeBuilderPool = new TypeBuilderPool(['simple' => $builder]);
         }
 
+        if ($stockRegistry === null) {
+            $stockItem = $this->createMock(StockItemInterface::class);
+            $stockItem->method('setQty')->willReturnSelf();
+            $stockItem->method('setIsInStock')->willReturnSelf();
+            $stockRegistry = $this->createMock(StockRegistryInterface::class);
+            $stockRegistry->method('getStockItemBySku')->willReturn($stockItem);
+        }
+
         return new ProductHandler(
             $productFactory ?? $this->createMock(ProductInterfaceFactory::class),
             $productRepository ?? $this->createMock(ProductRepositoryInterface::class),
             $searchCriteriaBuilder ?? $this->createMock(SearchCriteriaBuilder::class),
-            $stockRegistry ?? $this->createMock(StockRegistryInterface::class),
+            $stockRegistry,
             $imageDownloader ?? $this->createMock(ImageDownloader::class),
             $directoryList ?? $this->createMock(DirectoryList::class),
             $stockIndexerProcessor ?? $this->createMock(StockIndexerProcessor::class),

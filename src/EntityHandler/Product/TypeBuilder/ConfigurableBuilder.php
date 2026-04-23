@@ -83,7 +83,9 @@ class ConfigurableBuilder implements TypeBuilderInterface
             $childSkus[] = $this->createChild($parent, $combo);
         }
 
-        $this->linkManagement->setChildren($parent->getSku(), $childSkus);
+        foreach ($childSkus as $childSku) {
+            $this->linkManagement->addChild($parent->getSku(), $childSku);
+        }
 
         $colorAttr = $this->eavConfig->getAttribute('catalog_product', 'color');
         $sizeAttr = $this->eavConfig->getAttribute('catalog_product', 'size');

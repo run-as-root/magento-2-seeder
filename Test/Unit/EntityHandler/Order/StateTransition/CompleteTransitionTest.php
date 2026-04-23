@@ -41,7 +41,11 @@ final class CompleteTransitionTest extends TestCase
         $shipmentFactory = $this->createMock(ShipmentFactory::class);
         $transactionFactory = $this->createMock(TransactionFactory::class);
         $orderRepository = $this->createMock(OrderRepositoryInterface::class);
-        $order = $this->createMock(Order::class);
+        $order = $this->getMockBuilder(Order::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['canInvoice', 'getAllItems', 'getEntityId', 'getIncrementId', 'getState', 'hold', 'cancel', 'setState', 'setStatus'])
+            ->addMethods(['setIsInProcess'])
+            ->getMock();
         $invoice = $this->createMock(Invoice::class);
         $shipment = $this->createMock(Shipment::class);
         $transaction = $this->createMock(Transaction::class);

@@ -124,7 +124,7 @@ final class ReviewCreatorTest extends TestCase
             $options[] = $option;
         }
 
-        $ratingObj = $this->createMock(Rating::class);
+        $ratingObj = $this->buildRatingMock();
         $ratingObj->method('getOptions')->willReturn($options);
         $ratingObj->expects($this->once())
             ->method('setReviewId')
@@ -136,12 +136,12 @@ final class ReviewCreatorTest extends TestCase
             ->willReturnSelf();
 
         // Rating used as the collection — iterable via load() returning array of rating objects.
-        $collection = $this->createMock(Rating::class);
+        $collection = $this->buildRatingMock();
         $collection->method('addEntityFilter')->willReturnSelf();
         $collection->method('setPositionOrder')->willReturnSelf();
         $collection->method('load')->willReturn([$ratingObj]);
 
-        $rating = $this->createMock(Rating::class);
+        $rating = $this->buildRatingMock();
         $rating->method('getResourceCollection')->willReturn($collection);
 
         $ratingFactory = $this->createMock(RatingFactory::class);
@@ -265,7 +265,7 @@ final class ReviewCreatorTest extends TestCase
                 public function __construct(private int $optId) {}
                 public function getId(): int { return $this->optId; }
             };
-            $ratingObj = $this->createMock(Rating::class);
+            $ratingObj = $this->buildRatingMock();
             $ratingObj->method('getOptions')->willReturn([$option, $option, $option, $option, $option]);
             $ratingObj->expects($this->once())->method('setReviewId')->with(555)->willReturnSelf();
             $ratingObj->expects($this->once())->method('addOptionVote')->with($optId, 321)->willReturnSelf();
@@ -277,12 +277,12 @@ final class ReviewCreatorTest extends TestCase
         $value = $buildRatingObj(200);
         $quality = $buildRatingObj(300);
 
-        $collection = $this->createMock(Rating::class);
+        $collection = $this->buildRatingMock();
         $collection->method('addEntityFilter')->willReturnSelf();
         $collection->method('setPositionOrder')->willReturnSelf();
         $collection->method('load')->willReturn([$price, $value, $quality]);
 
-        $rating = $this->createMock(Rating::class);
+        $rating = $this->buildRatingMock();
         $rating->method('getResourceCollection')->willReturn($collection);
 
         $ratingFactory = $this->createMock(RatingFactory::class);
@@ -315,22 +315,22 @@ final class ReviewCreatorTest extends TestCase
         };
 
         // First rating throws on addOptionVote, second must still be invoked.
-        $broken = $this->createMock(Rating::class);
+        $broken = $this->buildRatingMock();
         $broken->method('getOptions')->willReturn([$option, $option, $option, $option, $option]);
         $broken->method('setReviewId')->willReturnSelf();
         $broken->method('addOptionVote')->willThrowException(new \RuntimeException('boom'));
 
-        $working = $this->createMock(Rating::class);
+        $working = $this->buildRatingMock();
         $working->method('getOptions')->willReturn([$option, $option, $option, $option, $option]);
         $working->expects($this->once())->method('setReviewId')->with(555)->willReturnSelf();
         $working->expects($this->once())->method('addOptionVote')->willReturnSelf();
 
-        $collection = $this->createMock(Rating::class);
+        $collection = $this->buildRatingMock();
         $collection->method('addEntityFilter')->willReturnSelf();
         $collection->method('setPositionOrder')->willReturnSelf();
         $collection->method('load')->willReturn([$broken, $working]);
 
-        $rating = $this->createMock(Rating::class);
+        $rating = $this->buildRatingMock();
         $rating->method('getResourceCollection')->willReturn($collection);
 
         $ratingFactory = $this->createMock(RatingFactory::class);
@@ -451,14 +451,27 @@ final class ReviewCreatorTest extends TestCase
 
     private function buildRatingWithNoOptions(): Rating
     {
-        $collection = $this->createMock(Rating::class);
+        $collection = $this->buildRatingMock();
         $collection->method('addEntityFilter')->willReturnSelf();
         $collection->method('setPositionOrder')->willReturnSelf();
         $collection->method('load')->willReturn([]);
 
-        $rating = $this->createMock(Rating::class);
+        $rating = $this->buildRatingMock();
         $rating->method('getResourceCollection')->willReturn($collection);
 
         return $rating;
+    }
+
+    /**
+     * addEntityFilter and setReviewId are magic (__call) methods on real Magento's
+     * Rating/Collection, so createMock() cannot see them. addMethods() declares them.
+     */
+    private function buildRatingMock(): Rating&MockObject
+    {
+        return $this->getMockBuilder(Rating::class)
+            ->disableOriginalConstructor()
+            ->addMethods(['addEntityFilter', 'setReviewId'])
+            ->onlyMethods(['getResourceCollection', 'setPositionOrder', 'load', 'getOptions', 'addOptionVote'])
+            ->getMock();
     }
 }

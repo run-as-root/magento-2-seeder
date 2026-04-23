@@ -8,6 +8,7 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\SalesRule\Api\Data\CouponInterface;
 use Magento\SalesRule\Api\Data\CouponInterfaceFactory;
 use Magento\SalesRule\Api\Data\RuleInterfaceFactory;
+use Magento\OfflineShipping\Model\SalesRule\Rule as FreeShippingRule;
 use Magento\SalesRule\Api\CouponRepositoryInterface;
 use Magento\SalesRule\Api\RuleRepositoryInterface;
 use Magento\SalesRule\Model\Rule;
@@ -50,7 +51,7 @@ class CartRuleHandler implements EntityHandlerInterface
         }
 
         if ($data['simple_action'] === 'free_shipping') {
-            $rule->setSimpleFreeShipping(Rule::FREE_SHIPPING_ITEM);
+            $rule->setSimpleFreeShipping(FreeShippingRule::FREE_SHIPPING_ITEM);
         }
 
         $couponType = ($data['coupon']['type'] ?? null) === 'specific_coupon'

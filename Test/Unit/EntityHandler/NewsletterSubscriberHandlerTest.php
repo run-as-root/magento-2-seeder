@@ -22,7 +22,7 @@ final class NewsletterSubscriberHandlerTest extends TestCase
 
     public function test_create_saves_new_subscriber_when_load_by_email_returns_unpersisted(): void
     {
-        $subscriber = $this->createMock(Subscriber::class);
+        $subscriber = $this->createSubscriberMock();
         $subscriber->expects($this->once())
             ->method('loadByEmail')
             ->with('jane@example.com')
@@ -53,7 +53,7 @@ final class NewsletterSubscriberHandlerTest extends TestCase
 
     public function test_create_uses_loaded_subscriber_when_one_already_exists(): void
     {
-        $existing = $this->createMock(Subscriber::class);
+        $existing = $this->createSubscriberMock();
         $existing->method('getId')->willReturn(5);
         $existing->expects($this->once())->method('setEmail')->with('dup@example.com')->willReturnSelf();
         $existing->expects($this->once())->method('setStoreId')->willReturnSelf();
@@ -62,7 +62,7 @@ final class NewsletterSubscriberHandlerTest extends TestCase
         $existing->expects($this->once())->method('setStatusChangedAt')->willReturnSelf();
         $existing->expects($this->once())->method('save')->willReturnSelf();
 
-        $factoryInstance = $this->createMock(Subscriber::class);
+        $factoryInstance = $this->createSubscriberMock();
         $factoryInstance->expects($this->once())
             ->method('loadByEmail')
             ->with('dup@example.com')
@@ -80,7 +80,7 @@ final class NewsletterSubscriberHandlerTest extends TestCase
 
     public function test_create_uses_defaults_when_optional_keys_missing(): void
     {
-        $subscriber = $this->createMock(Subscriber::class);
+        $subscriber = $this->createSubscriberMock();
         $subscriber->method('loadByEmail')->willReturnSelf();
         $subscriber->method('getId')->willReturn(null);
 
@@ -104,7 +104,7 @@ final class NewsletterSubscriberHandlerTest extends TestCase
 
     public function test_create_passes_through_full_data(): void
     {
-        $subscriber = $this->createMock(Subscriber::class);
+        $subscriber = $this->createSubscriberMock();
         $subscriber->method('loadByEmail')->willReturnSelf();
         $subscriber->method('getId')->willReturn(null);
 
@@ -147,6 +147,15 @@ final class NewsletterSubscriberHandlerTest extends TestCase
 
         $handler = $this->createHandler(resource: $resource);
         $handler->clean();
+    }
+
+    private function createSubscriberMock(): Subscriber
+    {
+        return $this->getMockBuilder(Subscriber::class)
+            ->disableOriginalConstructor()
+            ->onlyMethods(['loadByEmail', 'getId', 'save'])
+            ->addMethods(['setEmail', 'setStoreId', 'setStatus', 'setCustomerId', 'setStatusChangedAt'])
+            ->getMock();
     }
 
     private function createHandler(

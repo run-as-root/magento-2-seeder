@@ -96,10 +96,33 @@ if (!class_exists(\Magento\Framework\App\Area::class)) {
     ');
 }
 
+if (!class_exists(\Magento\Framework\Phrase::class)) {
+    eval('
+        namespace Magento\Framework;
+        class Phrase {
+            public function __construct(private readonly string $text = "", private readonly array $arguments = []) {}
+            public function __toString(): string { return $this->text; }
+            public function getText(): string { return $this->text; }
+            public function getArguments(): array { return $this->arguments; }
+        }
+    ');
+}
+
 if (!class_exists(\Magento\Framework\Exception\LocalizedException::class)) {
     eval('
         namespace Magento\Framework\Exception;
-        class LocalizedException extends \Exception {}
+        class LocalizedException extends \Exception {
+            public function __construct(?\Magento\Framework\Phrase $phrase = null, ?\Throwable $cause = null, $code = 0) {
+                parent::__construct($phrase !== null ? (string) $phrase : "", (int) $code, $cause);
+            }
+        }
+    ');
+}
+
+if (!class_exists(\Magento\Framework\Exception\AlreadyExistsException::class)) {
+    eval('
+        namespace Magento\Framework\Exception;
+        class AlreadyExistsException extends \Magento\Framework\Exception\LocalizedException {}
     ');
 }
 
@@ -341,7 +364,6 @@ if (!interface_exists(\Magento\Catalog\Api\Data\ProductInterface::class)) {
             public function setTypeId(string $typeId): self;
             public function getWeight(): ?float;
             public function setWeight(float $weight): self;
-            public function getStoreId(): ?int;
             public function setCustomAttribute(string $attributeCode, $attributeValue): self;
             public function setProductLinks(array $links): self;
         }
@@ -404,7 +426,6 @@ if (!class_exists(\Magento\Catalog\Model\Product::class)) {
             public function setTypeId(string $typeId): self { return $this; }
             public function getWeight(): ?float { return null; }
             public function setWeight(float $weight): self { return $this; }
-            public function getStoreId(): ?int { return null; }
             public function setCustomAttribute(string $attributeCode, $attributeValue): self { return $this; }
             public function setProductLinks(array $links): self { return $this; }
             public function addImageToMediaGallery($file, $mediaAttribute = null, $move = false, $exclude = true): self { return $this; }
@@ -461,7 +482,6 @@ if (!interface_exists(\Magento\Cms\Api\Data\PageInterface::class)) {
             public function getContent(): ?string;
             public function setContent(string $content): self;
             public function setIsActive(bool $isActive): self;
-            public function setStoreId($storeId): self;
         }
     ');
 }
@@ -512,7 +532,6 @@ if (!interface_exists(\Magento\Cms\Api\Data\BlockInterface::class)) {
             public function getContent(): ?string;
             public function setContent(string $content): self;
             public function setIsActive(bool $isActive): self;
-            public function setStoreId($storeId): self;
         }
     ');
 }
@@ -613,8 +632,6 @@ if (!interface_exists(\Magento\Quote\Api\Data\AddressInterface::class)) {
     eval('
         namespace Magento\Quote\Api\Data;
         interface AddressInterface {
-            public function addData(array $data): self;
-            public function setCollectShippingRates(bool $flag): self;
             public function setShippingMethod(string $method): self;
         }
     ');
@@ -680,7 +697,6 @@ if (!class_exists(\Magento\Sales\Model\Order::class)) {
             public function cancel(): self { return $this; }
             public function setState(string $state): self { return $this; }
             public function setStatus(string $status): self { return $this; }
-            public function setIsInProcess(bool $flag): self { return $this; }
             public function canInvoice(): bool { return true; }
             public function getAllItems(): array { return []; }
         }
@@ -802,7 +818,6 @@ if (!interface_exists(\Magento\Eav\Api\Data\AttributeInterface::class)) {
             public function getAttributeId(): ?int;
             public function getAttributeCode(): ?string;
             public function getDefaultFrontendLabel(): ?string;
-            public function getFrontendLabel(): ?string;
             public function getOptions(): array;
         }
     ');
@@ -825,7 +840,9 @@ if (!interface_exists(\Magento\ConfigurableProduct\Api\LinkManagementInterface::
     eval('
         namespace Magento\ConfigurableProduct\Api;
         interface LinkManagementInterface {
-            public function setChildren(string $sku, array $childSkus): bool;
+            public function getChildren($sku);
+            public function addChild($sku, $childSku);
+            public function removeChild($sku, $childSku);
         }
     ');
 }
@@ -1188,11 +1205,9 @@ if (!class_exists(\Magento\Review\Model\Rating::class)) {
         namespace Magento\Review\Model;
         class Rating {
             public function getResourceCollection() { return $this; }
-            public function addEntityFilter(string $code): self { return $this; }
             public function setPositionOrder(): self { return $this; }
             public function load(): array { return []; }
             public function getOptions(): array { return []; }
-            public function setReviewId($id): self { return $this; }
             public function addOptionVote($optionId, $productId): self { return $this; }
         }
     ');
@@ -1365,9 +1380,18 @@ if (!class_exists(\Magento\SalesRule\Model\Rule::class)) {
     eval('
         namespace Magento\SalesRule\Model;
         class Rule {
-            public const FREE_SHIPPING_ITEM = 1;
             public const COUPON_TYPE_NO_COUPON = "NO_COUPON";
             public const COUPON_TYPE_SPECIFIC = "SPECIFIC_COUPON";
+        }
+    ');
+}
+
+if (!class_exists(\Magento\OfflineShipping\Model\SalesRule\Rule::class)) {
+    eval('
+        namespace Magento\OfflineShipping\Model\SalesRule;
+        class Rule {
+            public const FREE_SHIPPING_ITEM = 1;
+            public const FREE_SHIPPING_ADDRESS = 2;
         }
     ');
 }
@@ -1379,7 +1403,6 @@ if (!class_exists(\Magento\Wishlist\Model\Wishlist::class)) {
         namespace Magento\Wishlist\Model;
         class Wishlist {
             public function loadByCustomerId(int $customerId, bool $create = false): self { return $this; }
-            public function setShared(int $shared): self { return $this; }
             public function save(): self { return $this; }
             public function getId() { return null; }
         }
@@ -1409,11 +1432,6 @@ if (!class_exists(\Magento\Newsletter\Model\Subscriber::class)) {
             public const STATUS_UNCONFIRMED = 4;
             public function loadByEmail(string $email): self { return $this; }
             public function getId() { return null; }
-            public function setEmail(string $email): self { return $this; }
-            public function setStoreId(int $storeId): self { return $this; }
-            public function setStatus(int $status): self { return $this; }
-            public function setCustomerId(int $customerId): self { return $this; }
-            public function setStatusChangedAt(string $dateTime): self { return $this; }
             public function save(): self { return $this; }
         }
     ');

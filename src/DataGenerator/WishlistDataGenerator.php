@@ -10,6 +10,14 @@ use Faker\Generator;
 
 class WishlistDataGenerator implements DataGeneratorInterface
 {
+    /** Track per-registry-instance cursor so each wishlist draws a distinct customer. */
+    private \WeakMap $customerCursor;
+
+    public function __construct()
+    {
+        $this->customerCursor = new \WeakMap();
+    }
+
     public function getType(): string
     {
         return 'wishlist';
@@ -32,7 +40,12 @@ class WishlistDataGenerator implements DataGeneratorInterface
             throw new \RuntimeException('wishlist requires at least one seeded product');
         }
 
-        $customer = $faker->randomElement($customers);
+        // Wishlist rows are unique per customer in practice (loadByCustomerId merges),
+        // so cycle sequentially rather than picking randomly to guarantee each wishlist
+        // lands on a distinct customer while we still have customers left.
+        $index = $this->customerCursor[$registry] ?? 0;
+        $customer = $customers[$index % count($customers)];
+        $this->customerCursor[$registry] = $index + 1;
         $itemCount = min($faker->numberBetween(1, 5), count($products));
         $picked = $faker->randomElements($products, $itemCount);
 
