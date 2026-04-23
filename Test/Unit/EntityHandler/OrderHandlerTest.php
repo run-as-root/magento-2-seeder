@@ -64,7 +64,7 @@ final class OrderHandlerTest extends TestCase
         $payment = $this->createMock(\Magento\Quote\Model\Quote\Payment::class);
         $payment->method('setMethod')->willReturnSelf();
 
-        $quote = $this->createQuoteMock();
+        $quote = $this->createMock(CartInterface::class);
         $quote->method('setStoreId')->willReturnSelf();
         $quote->method('setCustomerEmail')->willReturnSelf();
         $quote->method('setCustomerIsGuest')->willReturnSelf();
@@ -128,7 +128,7 @@ final class OrderHandlerTest extends TestCase
         $payment = $this->createMock(\Magento\Quote\Model\Quote\Payment::class);
         $payment->method('setMethod')->willReturnSelf();
 
-        $quote = $this->createQuoteMock();
+        $quote = $this->createMock(CartInterface::class);
         $quote->method('setStoreId')->willReturnSelf();
         $quote->method('setCustomerEmail')->willReturnSelf();
         $quote->method('setCustomerIsGuest')->willReturnSelf();
@@ -207,7 +207,7 @@ final class OrderHandlerTest extends TestCase
         $payment = $this->createMock(\Magento\Quote\Model\Quote\Payment::class);
         $payment->method('setMethod')->willReturnSelf();
 
-        $quote = $this->createQuoteMock();
+        $quote = $this->createMock(CartInterface::class);
         $quote->method('setStoreId')->willReturnSelf();
         $quote->method('setCustomerEmail')->willReturnSelf();
         $quote->method('setCustomerIsGuest')->willReturnSelf();
@@ -269,19 +269,6 @@ final class OrderHandlerTest extends TestCase
         );
 
         $handler->clean();
-    }
-
-    private function createQuoteMock(): CartInterface
-    {
-        return $this->getMockBuilder(CartInterface::class)
-            ->disableOriginalConstructor()
-            ->addMethods([
-                'setStoreId', 'setCustomerEmail', 'setCustomerIsGuest',
-                'setCustomerFirstname', 'setCustomerLastname',
-                'getBillingAddress', 'getShippingAddress', 'getPayment',
-                'collectTotals',
-            ])
-            ->getMockForAbstractClass();
     }
 
     private function createAddressMock(): \Magento\Quote\Api\Data\AddressInterface
