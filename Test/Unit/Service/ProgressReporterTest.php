@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace RunAsRoot\Seeder\Test\Unit\Service;
 
-use Laravel\Prompts\Prompt;
 use PHPUnit\Framework\TestCase;
 use RunAsRoot\Seeder\Service\ProgressReporter;
 
@@ -12,7 +11,12 @@ final class ProgressReporterTest extends TestCase
 {
     protected function setUp(): void
     {
-        Prompt::fake();
+        ob_start();
+    }
+
+    protected function tearDown(): void
+    {
+        ob_end_clean();
     }
 
     public function test_starts_a_progress_on_first_push_per_type(): void

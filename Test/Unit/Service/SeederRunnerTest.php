@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace RunAsRoot\Seeder\Test\Unit\Service;
 
-use Laravel\Prompts\Prompt;
 use RunAsRoot\Seeder\Api\EntityHandlerInterface;
 use RunAsRoot\Seeder\Api\SeederInterface;
 use RunAsRoot\Seeder\Service\ArraySeederAdapter;
@@ -19,19 +18,6 @@ use Psr\Log\LoggerInterface;
 
 final class SeederRunnerTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        // Belt-and-suspenders: SeederRunner skips spin() when stdout isn't a
-        // TTY (the usual case under PHPUnit), so Prompt::fake() is a
-        // fail-safe in case any code path still reaches into prompts.
-        Prompt::fake();
-    }
-
-    protected function tearDown(): void
-    {
-        \Mockery::close();
-    }
-
     public function test_runs_discovered_seeders_sorted_by_order(): void
     {
         $executionOrder = [];

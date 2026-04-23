@@ -19,7 +19,7 @@ use Symfony\Component\Console\Tester\CommandTester;
  */
 final class SeedMakeRoundtripTest extends TestCase
 {
-    private ObjectManagerInterface $om;
+    private ?ObjectManagerInterface $om = null;
 
     protected function setUp(): void
     {
