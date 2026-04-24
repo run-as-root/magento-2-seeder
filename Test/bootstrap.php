@@ -1195,10 +1195,13 @@ if (!class_exists(\Magento\Review\Model\Rating::class)) {
     eval('
         namespace Magento\Review\Model;
         class Rating {
+            protected array $_data = [];
+            public function setData($key, $value = null): self { $this->_data[$key] = $value; return $this; }
+            public function getData($key = "") { return $this->_data[$key] ?? null; }
             public function getResourceCollection() { return $this; }
             public function load(): array { return []; }
             public function addOptionVote($optionId, $productId): self { return $this; }
-            public function getOptions(): array { return []; }
+            public function getOptions(): array { $o = $this->getData("options"); return $o ?: []; }
         }
     ');
 }

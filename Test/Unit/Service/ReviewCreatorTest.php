@@ -125,7 +125,7 @@ final class ReviewCreatorTest extends TestCase
         }
 
         $ratingObj = $this->buildRatingMock();
-        $ratingObj->method('getOptions')->willReturn($options);
+        $ratingObj->setData('options', $options);
         $ratingObj->expects($this->once())
             ->method('setReviewId')
             ->with(777)
@@ -266,7 +266,7 @@ final class ReviewCreatorTest extends TestCase
                 public function getId(): int { return $this->optId; }
             };
             $ratingObj = $this->buildRatingMock();
-            $ratingObj->method('getOptions')->willReturn([$option, $option, $option, $option, $option]);
+            $ratingObj->setData('options', [$option, $option, $option, $option, $option]);
             $ratingObj->expects($this->once())->method('setReviewId')->with(555)->willReturnSelf();
             $ratingObj->expects($this->once())->method('addOptionVote')->with($optId, 321)->willReturnSelf();
 
@@ -316,12 +316,12 @@ final class ReviewCreatorTest extends TestCase
 
         // First rating throws on addOptionVote, second must still be invoked.
         $broken = $this->buildRatingMock();
-        $broken->method('getOptions')->willReturn([$option, $option, $option, $option, $option]);
+        $broken->setData('options', [$option, $option, $option, $option, $option]);
         $broken->method('setReviewId')->willReturnSelf();
         $broken->method('addOptionVote')->willThrowException(new \RuntimeException('boom'));
 
         $working = $this->buildRatingMock();
-        $working->method('getOptions')->willReturn([$option, $option, $option, $option, $option]);
+        $working->setData('options', [$option, $option, $option, $option, $option]);
         $working->expects($this->once())->method('setReviewId')->with(555)->willReturnSelf();
         $working->expects($this->once())->method('addOptionVote')->willReturnSelf();
 
@@ -466,7 +466,7 @@ final class ReviewCreatorTest extends TestCase
     {
         return $this->getMockBuilder(Rating::class)
             ->disableOriginalConstructor()
-            ->onlyMethods(['getResourceCollection', 'load', 'addOptionVote', 'getOptions'])
+            ->onlyMethods(['getResourceCollection', 'load', 'addOptionVote'])
             ->addMethods(['setPositionOrder', 'addEntityFilter', 'setReviewId'])
             ->getMock();
     }
